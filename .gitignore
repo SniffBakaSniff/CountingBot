@@ -1,0 +1,8 @@
+.vs
+bin
+obj
+appsettings.json
+/Migrations
+*.db
+*.db-wal
+*.db-shm

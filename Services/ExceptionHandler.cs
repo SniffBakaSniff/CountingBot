@@ -1,7 +1,10 @@
+using Serilog;
+
 namespace CountingBot.Services
 {
     public static class ExceptionHandler
     {
+
         public static async Task HandleAsync(Func<Task> action)
         {
             try
@@ -10,8 +13,7 @@ namespace CountingBot.Services
             }
             catch (Exception ex)
             {
-                // Log the exception
-                Console.WriteLine($"Error: {ex.Message}\nStack Trace:{ex.StackTrace}");
+                Log.Error(ex, "An error occurred while executing the action.");
             }
         }
 
@@ -23,8 +25,7 @@ namespace CountingBot.Services
             }
             catch (Exception ex)
             {
-                // Log the exception
-                Console.WriteLine($"Error: {ex.Message}\nStack Trace:{ex.StackTrace}");
+                Log.Error(ex, "An error occurred while executing the action.");
                 return default!;
             }
         }

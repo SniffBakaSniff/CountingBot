@@ -1,4 +1,6 @@
-﻿using DSharpPlus;
+﻿using Serilog;
+using Serilog.Events;
+using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.TextCommands;
@@ -10,7 +12,6 @@ using CountingBot.Listeners;
 using CountingBot.Services.Database;
 using CountingBot.Services;
 using CountingBot.Features.ConfigCommands;
-using DSharpPlus.EventArgs;
 
 namespace CountingBot
 {
@@ -18,70 +19,127 @@ namespace CountingBot
     {
         public static async Task Main(string[] args)
         {
-            string? discordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
-            if (string.IsNullOrWhiteSpace(discordToken))
+            // Configure Serilog
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .Enrich.FromLogContext()
+                .Enrich.WithEnvironmentName()
+                .Enrich.WithMachineName()
+                .Enrich.WithThreadId()
+                .Enrich.WithProcessId()
+                .WriteTo.Console()
+                .WriteTo.Seq("http://localhost:5341") // Replace with your Seq server URL
+                .CreateLogger();
+
+            // Handle unobserved task exceptions
+            TaskScheduler.UnobservedTaskException += (sender, eventArgs) =>
             {
-                Console.WriteLine("Error: No discord token found. Please provide a token via the DISCORD_TOKEN environment variable.");
-                Environment.Exit(1);
-            }
+                Log.Error(eventArgs.Exception, "Unobserved task exception occurred.");
+                eventArgs.SetObserved();
+            };
 
-            DiscordClientBuilder builder = DiscordClientBuilder
-                .CreateDefault(discordToken, TextCommandProcessor.RequiredIntents | SlashCommandProcessor.RequiredIntents | DiscordIntents.MessageContents | DiscordIntents.GuildMembers)
-                .ConfigureServices(services => 
-                {
-                    services.AddDbContext<BotDbContext>();
-                    services.AddScoped<IPrefixResolver, CustomPrefixResolver>();
-                    services.AddScoped<IGuildSettingsService, GuildSettingsService>();
-                    services.AddScoped<IStringInterpolatorService, StringInterpolatorService>();
-                });
+            DiscordClient? client = null;
 
-
-            var buttonInteractionHandler = new ButtonInteractionListener();
-            var onMessageListener = new OnMessageListener();
-
-            builder.ConfigureEventHandlers(b =>
+            try
             {
-                b.HandleComponentInteractionCreated(buttonInteractionHandler.HandleButtonInteraction);
-                b.HandleMessageCreated(onMessageListener.HandleMessage);
-            });
+                Log.Information("Starting CountingBot...");
 
-            // Use the commands extension
-            builder.UseCommands
-            (
-                // we register our commands here
-                (ServiceProvider, extension) =>
+                string? discordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
+                if (string.IsNullOrWhiteSpace(discordToken))
                 {
-                    extension.AddCommands([
-                        typeof(PingCommand),
-                        typeof(CommandsGroup)]);
-                    
-                    TextCommandProcessor textCommandProcessor = new(new TextCommandConfiguration
+                    Log.Error("No discord token found. Please provide a token via the DISCORD_TOKEN environment variable.");
+                    Environment.Exit(1);
+                }
+
+                DiscordClientBuilder builder = DiscordClientBuilder
+                    .CreateDefault(discordToken, TextCommandProcessor.RequiredIntents | SlashCommandProcessor.RequiredIntents | DiscordIntents.MessageContents | DiscordIntents.GuildMembers)
+                    .ConfigureServices(services =>
                     {
-                       // PrefixResolver = new DefaultPrefixResolver(true, "?", ".").ResolvePrefixAsync
+                        services.AddDbContext<BotDbContext>();
+                        services.AddScoped<IPrefixResolver, CustomPrefixResolver>();
+                        services.AddScoped<IGuildSettingsService, GuildSettingsService>();
+                        services.AddScoped<IStringInterpolatorService, StringInterpolatorService>();
                     });
 
-                    // Add text commands with a custom prefix (?ping)
-                    extension.AddProcessors(textCommandProcessor);
+                var buttonInteractionHandler = new ButtonInteractionListener();
+                var messageHandler = new MessageHandler(new GuildSettingsService());
 
-                    extension.CommandErrored += EventHandlers.CommandErrored;
-                },
-
-                
-                new CommandsConfiguration()
+                builder.ConfigureEventHandlers(b =>
                 {
-                    DebugGuildId = 1345544197310255134,
-                    RegisterDefaultCommandProcessors = true,
-                    UseDefaultCommandErrorHandler = false
+                    b.HandleComponentInteractionCreated(buttonInteractionHandler.HandleButtonInteraction);
+                    b.HandleMessageCreated(messageHandler.HandleMessage);
+                });
+
+                builder.UseCommands(
+                    (ServiceProvider, extension) =>
+                    {
+                        extension.AddCommands(new[]
+                        {
+                            typeof(PingCommand),
+                            typeof(CommandsGroup)
+                        });
+
+                        TextCommandProcessor textCommandProcessor = new(new TextCommandConfiguration
+                        {
+                            // PrefixResolver = new DefaultPrefixResolver(true, "?", ".").ResolvePrefixAsync
+                        });
+
+                        extension.AddProcessors(textCommandProcessor);
+
+                        extension.CommandErrored += EventHandlers.CommandErrored;
+                    },
+                    new CommandsConfiguration()
+                    {
+                        DebugGuildId = 1345544197310255134,
+                        RegisterDefaultCommandProcessors = true,
+                        UseDefaultCommandErrorHandler = false
+                    });
+
+                client = builder.Build();
+
+                DiscordActivity status = new("Counting Bot", DiscordActivityType.Custom);
+
+                await client.ConnectAsync(status, DiscordUserStatus.Online);
+
+                var cts = new CancellationTokenSource();
+                Console.CancelKeyPress += (sender, eventArgs) =>
+                {
+                    eventArgs.Cancel = true;
+                    cts.Cancel();
+                };
+
+                Log.Information("CountingBot is now running.");
+                await Task.Delay(-1, cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                Log.Information("Shutdown signal received.");
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Application terminated unexpectedly.");
+            }
+            finally
+            {
+                if (client != null)
+                {
+                    try
+                    {
+                        await client.DisconnectAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, "Error while disconnecting the Discord client.");
+                    }
+                    finally
+                    {
+                        client.Dispose();
+                    }
                 }
-            );
-
-            DiscordClient client = builder.Build();
-
-            DiscordActivity status = new("Counting Bot", DiscordActivityType.Custom);
-
-            await client.ConnectAsync(status, DiscordUserStatus.Online);
-
-            await Task.Delay(-1);
+                Log.Warning("CountingBot is shutting down... closing and flushing logs.");
+                Log.CloseAndFlush();
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 public class BotDbContext : DbContext
 {
     public DbSet<GuildSettings> GuildSettings { get; set; }
+    public DbSet<ChannelSettings> ChannelSettings { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

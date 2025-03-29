@@ -29,23 +29,6 @@ namespace CountingBot.Services
             Member = ctx.Member!;
             CommandName = ctx.Command.Name;
         }
-
-        public EventContext(GuildMemberAddedEventArgs e)
-        {
-            User = e.Member;
-            Channel = e.Guild.GetDefaultChannel() ?? throw new InvalidOperationException("Default channel not found");
-            Guild = e.Guild;
-            Member = e.Member;
-        }
-
-        public EventContext(GuildMemberRemovedEventArgs e)
-        {
-            User = e.Member;
-            Channel = e.Guild.GetDefaultChannel() ?? throw new InvalidOperationException("Default channel not found");
-            Guild = e.Guild;
-            Member = e.Member;
-        }
-        
     }
 
     public class StringInterpolatorService : IStringInterpolatorService

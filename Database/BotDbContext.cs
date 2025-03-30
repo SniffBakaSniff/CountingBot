@@ -7,9 +7,8 @@ public class BotDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlite("Data Source=database.db");
+            optionsBuilder.UseNpgsql("Host=localhost;Database=CountingBotDb;Username=Subaka;Password=Subaka1@");
         }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

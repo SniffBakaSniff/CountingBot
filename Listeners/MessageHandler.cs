@@ -1,7 +1,9 @@
 using CountingBot.Helpers;
 using DSharpPlus;
+using DSharpPlus.Commands.ArgumentModifiers;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Serilog;
 
 namespace CountingBot.Listeners
@@ -11,9 +13,10 @@ namespace CountingBot.Listeners
         private readonly IGuildSettingsService _guildSettingsService;
         private readonly Dictionary<ulong, HashSet<ulong>> _cooldowns = [];
         private readonly Dictionary<ulong, int> _count = [];
-        private const int CooldownSeconds = 3;
+        private const int CooldownSeconds = 2;
         private DiscordEmoji? _correctEmoji;
         private DiscordEmoji? _wrongEmoji;
+        
 
         public MessageHandler(IGuildSettingsService guildSettingsService)
         {
@@ -22,7 +25,7 @@ namespace CountingBot.Listeners
 
         public async Task HandleMessage(DiscordClient client, MessageCreatedEventArgs e)
         {
-            Log.Debug("Handling message from user {User} in channel {ChannelId}", e.Author.Username, e.Channel.Id);
+            Log.Debug("Handling message from user {User} in channel {ChannelId}.", e.Author.Username, e.Channel.Id);
 
             if (e.Author.IsBot)
             {
@@ -65,8 +68,8 @@ namespace CountingBot.Listeners
                 {
                     Log.Warning("User {User} is on cooldown in channel {ChannelId}.", e.Author.Username, channelId);
                     var embed = MessageHelpers.GenericErrorEmbed(
-                        title: "Cooldown",
-                        message: "You are on cooldown! Please wait before counting again."
+                        title: "Slowdown!",
+                        message: "You are counting to fast! Please slow down."
                     );
                     var message = await e.Channel.SendMessageAsync(embed: embed);
                     _ = Task.Run(async () =>
@@ -92,12 +95,19 @@ namespace CountingBot.Listeners
                     await e.Message.CreateReactionAsync(_correctEmoji!);
                     await _guildSettingsService.SetChannelsCurrentCount(e.Guild.Id, e.Channel.Id, parsedNumber);
                 }
+                
                 else
                 {
                     Log.Warning("Invalid count in channel {ChannelId}. Expected {Expected}, but got {ParsedNumber}. Resetting state.", channelId, currentCount + 1, parsedNumber);
                     await e.Message.CreateReactionAsync(_wrongEmoji!);
+                    await _guildSettingsService.SetChannelsCurrentCount(e.Guild.Id, e.Channel.Id, 0);
                     _count[channelId] = 0;
                     ResetCooldowns(channelId);
+
+                    var embed = MessageHelpers.GenericErrorEmbed(
+                        title:"Count Ruined!", 
+                        message: $"{e.Author.Mention} ruined the count! The expected number was **{currentCount + 1}**, but **{parsedNumber}** was provided. The count has been reset to **0**.");
+                    await e.Channel.SendMessageAsync(embed: embed);
                 }
             }
             catch (FormatException)

@@ -74,11 +74,11 @@ namespace CountingBot
                 builder.UseCommands(
                     (ServiceProvider, extension) =>
                     {
-                        extension.AddCommands(new[]
-                        {
+                        extension.AddCommands(
+                        [
                             typeof(PingCommand),
                             typeof(CommandsGroup)
-                        });
+                        ]);
 
                         TextCommandProcessor textCommandProcessor = new(new TextCommandConfiguration
                         {

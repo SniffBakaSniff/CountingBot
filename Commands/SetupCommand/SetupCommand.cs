@@ -1,9 +1,8 @@
-using CountingBot.Listeners;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
 
-namespace CountingBot.Features.ConfigCommands
+namespace CountingBot.Features.Commands
 {
     public partial class CommandsGroup
     {

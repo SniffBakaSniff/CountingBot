@@ -5,7 +5,9 @@ using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
 using Serilog;
 
-namespace CountingBot.Features.ConfigCommands
+using CountingBot.Services;
+
+namespace CountingBot.Features.Commands
 {
     public partial class CommandsGroup
     {

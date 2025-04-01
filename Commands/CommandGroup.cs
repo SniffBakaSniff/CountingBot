@@ -1,15 +1,16 @@
-
-namespace CountingBot.Features.ConfigCommands
+using CountingBot.Services.Database;
+namespace CountingBot.Features.Commands
 {
     public partial class CommandsGroup
     {
 
         private readonly IGuildSettingsService _guildSettingsService;
-        private readonly BotDbContext dbContext = new BotDbContext();
+        private readonly IUserInformationService _userInforamtionService;
 
-        public CommandsGroup(IGuildSettingsService guildSettingsService)
+        public CommandsGroup(IGuildSettingsService guildSettingsService, IUserInformationService userInformationService)
         {
             _guildSettingsService = guildSettingsService;
+            _userInforamtionService = userInformationService;
         }
     }
 }

@@ -5,7 +5,7 @@ using System;
 
 namespace CountingBot
 {
-    public class EventHandlers
+    public static class EventHandlers
     {
         public static async Task CommandErrored(CommandsExtension s, CommandErroredEventArgs e)
         {

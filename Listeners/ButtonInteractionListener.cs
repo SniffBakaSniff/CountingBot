@@ -3,6 +3,8 @@ using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using CountingBot.Helpers;
 
+using CountingBot.Database;
+
 namespace CountingBot.Listeners
 {
     public class ButtonInteractionListener

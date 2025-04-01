@@ -7,15 +7,16 @@ using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 
-using CountingBot.Features;
 using CountingBot.Listeners;
-using CountingBot.Services.Database;
 using CountingBot.Services;
-using CountingBot.Features.ConfigCommands;
+using CountingBot.Services.Database;
+using CountingBot.Features.Commands;
+using CountingBot.Database;
+
 
 namespace CountingBot
 {
-    class Program
+    static class Program
     {
         public static async Task Main(string[] args)
         {
@@ -59,11 +60,12 @@ namespace CountingBot
                         services.AddDbContext<BotDbContext>();
                         services.AddScoped<IPrefixResolver, CustomPrefixResolver>();
                         services.AddScoped<IGuildSettingsService, GuildSettingsService>();
+                        services.AddScoped<IUserInformationService, UserInformationService>();
                         services.AddScoped<IStringInterpolatorService, StringInterpolatorService>();
                     });
 
                 var buttonInteractionHandler = new ButtonInteractionListener();
-                var messageHandler = new MessageHandler(new GuildSettingsService());
+                var messageHandler = new MessageHandler(new GuildSettingsService(), new UserInformationService());
 
                 builder.ConfigureEventHandlers(b =>
                 {
@@ -76,7 +78,6 @@ namespace CountingBot
                     {
                         extension.AddCommands(
                         [
-                            typeof(PingCommand),
                             typeof(CommandsGroup)
                         ]);
 
@@ -102,19 +103,21 @@ namespace CountingBot
 
                 await client.ConnectAsync(status, DiscordUserStatus.Online);
 
-                var cts = new CancellationTokenSource();
-                Console.CancelKeyPress += (sender, eventArgs) =>
+                using (var cts = new CancellationTokenSource())
                 {
-                    eventArgs.Cancel = true;
-                    cts.Cancel();
-                };
+                    Console.CancelKeyPress += (sender, eventArgs) =>
+                    {
+                        eventArgs.Cancel = true;
+                        cts.Cancel();
+                    };
 
-                Log.Information("CountingBot is now running.");
-                await Task.Delay(-1, cts.Token);
+                    Log.Information("CountingBot is now running.");
+                    await Task.Delay(-1, cts.Token);
+                }
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException ex)
             {
-                Log.Information("Shutdown signal received.");
+                Log.Information(ex, "Shutdown signal received.");
             }
             catch (Exception ex)
             {
@@ -138,7 +141,7 @@ namespace CountingBot
                     }
                 }
                 Log.Warning("CountingBot is shutting down... closing and flushing logs.");
-                Log.CloseAndFlush();
+                await Log.CloseAndFlushAsync();
             }
         }
     }

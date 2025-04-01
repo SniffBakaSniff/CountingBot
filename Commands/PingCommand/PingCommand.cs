@@ -1,9 +1,9 @@
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 
-namespace CountingBot.Features
+namespace CountingBot.Features.Commands
 {
-    public class PingCommand
+    public partial class CommandsGroup
     {
         private static readonly DateTime _botStartTime = DateTime.UtcNow;
 

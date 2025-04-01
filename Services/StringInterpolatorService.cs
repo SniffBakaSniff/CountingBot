@@ -19,7 +19,7 @@ namespace CountingBot.Services
         public DiscordChannel Channel { get; }
         public DiscordGuild Guild { get; }
         public DiscordMember Member { get; }
-        public string CommandName { get; } = string.Empty;
+        public string CommandName { get; }
 
         public EventContext(CommandContext ctx)
         {

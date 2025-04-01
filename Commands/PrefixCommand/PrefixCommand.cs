@@ -2,7 +2,7 @@ using DSharpPlus.Commands;
 using CountingBot.Helpers;
 
 
-namespace CountingBot.Features.ConfigCommands
+namespace CountingBot.Features.Commands
 {
     public partial class CommandsGroup
     {

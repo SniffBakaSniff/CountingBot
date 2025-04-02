@@ -1,12 +1,13 @@
 using Serilog;
 
 using CountingBot.Database;
+using CountingBot.Database.Models;
 
 namespace CountingBot.Services.Database
 {
     public class UserInformationService : IUserInformationService
     {
-        public async Task<UserInformation> GetUserInfoAsync(ulong userId)
+        public async Task<UserInformation> GetUserInformationAsync(ulong userId)
         {
             return await ExceptionHandler.HandleAsync(async () =>
             {
@@ -30,7 +31,7 @@ namespace CountingBot.Services.Database
 
                 var stats = userInformation.GetOrCreateCountingStats(guildId);
 
-                stats.TotalCount++;
+                stats.TotalCounts++;
 
                 if (correctCount)
                 {
@@ -62,6 +63,34 @@ namespace CountingBot.Services.Database
                 Log.Information("Successfully updated counting stats for user {UserId} in guild {GuildId}", userId, guildId);
             }).ConfigureAwait(false);
         }
+
+        public async Task<bool> GetUserRevivesAsync(ulong userId, bool removeRevive)
+        {
+            return await ExceptionHandler.HandleAsync(async () =>
+            {
+                await using var dbContext = new BotDbContext();
+                Log.Information("Fetching user info for user {UserId}", userId);
+                
+                var userInformation = await GetOrCreateUserInformationAsync(dbContext, userId)
+                    .ConfigureAwait(false);
+
+                if (userInformation.Revives > 0)
+                {
+                    if (removeRevive)
+                    {
+                        userInformation.Revives--;
+                        Log.Information("User {UserId} used a revive. Remaining: {Revives}", 
+                                        userId, userInformation.Revives);
+
+                        await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                    }
+                    return true;
+                }
+
+                return false;
+            }).ConfigureAwait(false);
+        }
+
 
         private async Task<UserInformation> GetOrCreateUserInformationAsync(BotDbContext dbContext, ulong userId)
         {

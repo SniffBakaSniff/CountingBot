@@ -1,12 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CountingBot.Database
+namespace CountingBot.Database.Models
     {
     public class GuildSettings
     {
         [Key]
         public ulong GuildId { get; set; }
         public string Prefix { get; set; } = "!";
+        public bool MathEnabled { get; set; } = false;
     }
 
     public class ChannelSettings

@@ -64,13 +64,14 @@ namespace CountingBot
                         services.AddScoped<IStringInterpolatorService, StringInterpolatorService>();
                     });
 
-                var buttonInteractionHandler = new ButtonInteractionListener();
+                var buttonInteractionHandler = new ButtonInteractionListener(new GuildSettingsService(), new UserInformationService());
                 var messageHandler = new MessageHandler(new GuildSettingsService(), new UserInformationService());
 
                 builder.ConfigureEventHandlers(b =>
                 {
                     b.HandleComponentInteractionCreated(buttonInteractionHandler.HandleButtonInteraction);
                     b.HandleMessageCreated(messageHandler.HandleMessage);
+                    b.HandleMessageDeleted(messageHandler.HandleMessageDeleted);
                 });
 
                 builder.UseCommands(

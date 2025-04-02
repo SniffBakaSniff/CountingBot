@@ -1,12 +1,13 @@
-using CountingBot.Database;
-
+using CountingBot.Database.Models;
 
 namespace CountingBot.Services.Database
 {
     public interface IGuildSettingsService
     {
         Task<string> GetPrefixAsync(ulong guildId);
+        Task<bool> GetMathEnabledAsync(ulong guildId);
         Task SetPrefixAsync(ulong guildId, string prefix);
+        Task SetMathEnabledAsync(ulong guildId, bool enabled);
         Task SetCountingChannel(ulong guildId, ulong channelId, int baseValue, string name);
         Task<bool> CheckIfCountingChannel(ulong guildId, ulong channelId);
         Task<int> GetChannelBase(ulong guildId, ulong channelId);
@@ -17,7 +18,8 @@ namespace CountingBot.Services.Database
 
     public interface IUserInformationService
     {
-        Task<UserInformation> GetUserInfoAsync(ulong userId);
+        Task<UserInformation> GetUserInformationAsync(ulong userId);
         Task UpdateUserCountAsync(ulong guildId, ulong userId, int currentCount, bool correctCount);
+        Task<bool> GetUserRevivesAsync(ulong userId, bool removeRevive);
     }
 }

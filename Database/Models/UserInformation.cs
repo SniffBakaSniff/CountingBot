@@ -1,14 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace CountingBot.Database
+namespace CountingBot.Database.Models
 {
     public class CountingStats
     {
-        public int TotalCount { get; set; }
-        public int HighestCount { get; set; }
+        public int TotalCounts { get; set; }
         public int TotalCorrectCounts { get; set; }
         public int TotalIncorrectCounts { get; set; }
-        public int ErrorCount { get; set; }
+        public int HighestCount { get; set; }
         public int CurrentStreak { get; set; }
         public int BestStreak { get; set; }
     }

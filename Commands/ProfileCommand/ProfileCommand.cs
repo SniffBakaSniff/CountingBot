@@ -19,7 +19,7 @@ namespace CountingBot.Features.Commands
 
                 Log.Information("Fetching profile for user {UserId}", userId);
 
-                var userInfo = await _userInforamtionService.GetUserInfoAsync(userId);
+                var userInfo = await _userInforamtionService.GetUserInformationAsync(userId);
 
                 if (userInfo == null)
                 {
@@ -35,7 +35,7 @@ namespace CountingBot.Features.Commands
                     Timestamp = DateTime.UtcNow
                 };
 
-                embed.AddField("Total Counts", userInfo.CountingData[guildId].TotalCount.ToString(), true);
+                embed.AddField("Total Counts", userInfo.CountingData[guildId].TotalCounts.ToString(), true);
                 embed.AddField("Correct Counts", userInfo.CountingData[guildId].TotalCorrectCounts.ToString(), true);
                 embed.AddField("Incorrect Counts", userInfo.CountingData[guildId].TotalIncorrectCounts.ToString(), true);
                 embed.AddField("Current Streak", userInfo.CountingData[guildId].CurrentStreak.ToString(), true);

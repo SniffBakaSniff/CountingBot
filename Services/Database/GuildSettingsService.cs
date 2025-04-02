@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 using CountingBot.Database;
+using CountingBot.Database.Models;
+
 
 namespace CountingBot.Services.Database
 {
@@ -21,6 +23,20 @@ namespace CountingBot.Services.Database
             }).ConfigureAwait(false);
         }
 
+        public async Task<bool> GetMathEnabledAsync(ulong guildId)
+        {
+            return await ExceptionHandler.HandleAsync(async () =>
+            {
+                using var dbContext = new BotDbContext();
+                Log.Information("Fetching prefix for guild {GuildId}", guildId);
+
+                var settings = await dbContext.GuildSettings.FindAsync(guildId).ConfigureAwait(false);
+                var setting = settings!.MathEnabled;
+                Log.Information("Is Math Enabled for Guild {GuildId} : {Setting}", guildId, setting);
+                return setting;
+            }).ConfigureAwait(false);
+        }
+
         public async Task SetPrefixAsync(ulong guildId, string prefix)
         {
             await ExceptionHandler.HandleAsync(async () =>
@@ -33,6 +49,23 @@ namespace CountingBot.Services.Database
 
                 await dbContext.SaveChangesAsync().ConfigureAwait(false);
                 Log.Information("Prefix updated successfully for guild {GuildId}", guildId);
+            }).ConfigureAwait(false);
+        }
+
+        public async Task SetMathEnabledAsync(ulong guildId, bool enabled)
+        {
+            await ExceptionHandler.HandleAsync(async () =>
+            {
+                using var dbContext = new BotDbContext();
+                Log.Information("Setting MathEnabled to {Enabled} for guild {GuildId}", enabled, guildId);
+
+                // Retrieve or create the guild settings
+                var settings = await GetOrCreateGuildSettingsAsync(dbContext, guildId).ConfigureAwait(false);
+                settings.MathEnabled = enabled;
+
+                // Save changes to the database
+                await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                Log.Information("MathEnabled successfully updated to {Enabled} for guild {GuildId}", enabled, guildId);
             }).ConfigureAwait(false);
         }
 

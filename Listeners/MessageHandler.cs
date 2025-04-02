@@ -6,6 +6,7 @@ using Serilog;
 using System.Collections.Concurrent;
 
 using CountingBot.Services.Database;
+using NCalc;
 
 namespace CountingBot.Listeners
 {
@@ -14,7 +15,7 @@ namespace CountingBot.Listeners
         private readonly IGuildSettingsService _guildSettingsService;
         private readonly IUserInformationService _userInformationService;
         private readonly ConcurrentDictionary<ulong, HashSet<ulong>> _cooldowns = new();
-        private readonly ConcurrentDictionary<ulong, int> _count = new();
+        private readonly ConcurrentDictionary<(ulong GuildId, ulong ChannelId), (ulong? messageId, int)> _count = new();
         private readonly ConcurrentDictionary<ulong, SemaphoreSlim> _channelSemaphores = new();
         private const int CooldownSeconds = 2;
         private DiscordEmoji? _correctEmoji;
@@ -24,6 +25,27 @@ namespace CountingBot.Listeners
         {
             _guildSettingsService = guildSettingsService;
             _userInformationService = userInformationService;
+        }
+
+        public async Task HandleMessageDeleted(DiscordClient client, MessageDeletedEventArgs e)
+        {
+            ulong channelId = e.Channel.Id;
+            ulong guildId = e.Guild.Id;
+            var (messageId, currentCount) = _count[(guildId, channelId)];
+
+            if (e.Message.Id == messageId)
+            {
+                int baseValue = await _guildSettingsService.GetChannelBase(guildId, channelId);
+                string parsedCurrentCount = Convert.ToString(currentCount, baseValue);
+
+                var countResetEmbed = new DiscordEmbedBuilder()
+                    .WithTitle("⚠️ Count Message Deleted!")
+                    .WithDescription($"The latest count message was deleted! The current count is **{parsedCurrentCount}**.")
+                    .WithColor(DiscordColor.Red)
+                    .Build();
+
+                await e.Channel.SendMessageAsync(embed: countResetEmbed);
+            }
         }
 
         public async Task HandleMessage(DiscordClient client, MessageCreatedEventArgs e)
@@ -42,9 +64,11 @@ namespace CountingBot.Listeners
             if (await _guildSettingsService.CheckIfCountingChannel(e.Guild.Id, e.Channel.Id))
             {
                 int baseValue = await _guildSettingsService.GetChannelBase(e.Guild.Id, e.Channel.Id);
-                _count[e.Channel.Id] = await _guildSettingsService.GetChannelsCurrentCount(e.Guild.Id, e.Channel.Id);
+                _count[(e.Guild.Id, e.Channel.Id)] = (null, await _guildSettingsService.GetChannelsCurrentCount(e.Guild.Id, e.Channel.Id));
+
                 await ProcessCountingMessage(e, baseValue);
             }
+
             else
             {
                 Log.Debug("Message received in a non-counting channel. Ignoring.");
@@ -64,11 +88,12 @@ namespace CountingBot.Listeners
 
             try
             {
-                int currentCount = _count.GetValueOrDefault(channelId, 0);
+                var (messageId, currentCount) = _count[(e.Guild.Id, channelId)];
+                var (success, parsedNumber) = await TryEvaluateExpressionAsync(e.Guild.Id, e.Message, baseValue);
 
-                if (!int.TryParse(e.Message.Content, out int parsedNumber))
+                if (!success)
                 {
-                    Log.Debug("Message is not a valid number in base {Base} for channel {ChannelId}. Ignoring.", baseValue, channelId);
+                    Log.Debug("Message is not a valid math expression or number in base {Base} for channel {ChannelId}. Ignoring.", baseValue, channelId);
                     return;
                 }
 
@@ -81,14 +106,14 @@ namespace CountingBot.Listeners
                         title: "Slowdown!",
                         message: "You are counting too fast! Please slow down."
                     );
-                    var warningMessage = await e.Channel.SendMessageAsync(embed: embed);
+                    var warningMessage = await e.Message.RespondAsync(embed);
                     _ = DeleteMessagesAsync(e.Message, warningMessage, 2500);
                     return;
                 }
 
                 if (parsedNumber == currentCount + 1)
                 {
-                    _count[channelId] = parsedNumber;
+                    _count[(e.Guild.Id, e.Channel.Id)] = (e.Message.Id, parsedNumber);
                     AddUserToCooldown(channelId, e.Author.Id);
                     _ = RemoveCooldownAfterDelay(channelId, e.Author.Id);
 
@@ -97,26 +122,107 @@ namespace CountingBot.Listeners
                     _ = _guildSettingsService.SetChannelsCurrentCount(e.Guild.Id, e.Channel.Id, parsedNumber);
                     _ = _userInformationService.UpdateUserCountAsync(e.Guild.Id, e.Author.Id, parsedNumber, true);
                 }
+
                 else
                 {
-                    Log.Warning("Invalid count in channel {ChannelId}. Expected {Expected}, but got {ParsedNumber}. Resetting state.", channelId, currentCount + 1, parsedNumber);
-                    _ = e.Message.CreateReactionAsync(_wrongEmoji!);
-                    _ = _guildSettingsService.SetChannelsCurrentCount(e.Guild.Id, e.Channel.Id, 0);
-                    _ = _userInformationService.UpdateUserCountAsync(e.Guild.Id, e.Author.Id, parsedNumber, false);
-                    _count[channelId] = 0;
-                    ResetCooldowns(channelId);
-
-                    var embed = MessageHelpers.GenericErrorEmbed(
-                        title: "Count Ruined!",
-                        message: $"{e.Author.Mention} ruined the count! The expected number was **{currentCount + 1}**, but **{parsedNumber}** was provided. The count has been reset to **0**."
+                    var reviveEmbed = MessageHelpers.GenericErrorEmbed(
+                        title: "Disaster Strikes! ⚠️", 
+                        message: "Oh no! The count has fallen! ⏳ Time is running out—will someone step up and use a revive?"
                     );
-                    await e.Channel.SendMessageAsync(embed: embed);
+
+                    var reviveMessage = await e.Message.RespondAsync(new DiscordMessageBuilder().AddEmbed(reviveEmbed).AddComponents(
+                        new DiscordButtonComponent(DiscordButtonStyle.Primary, "use_revive", "⚡ Revive the Count!")
+                    ));
+
+                    await Task.Delay(30000);
+
+                    try
+                    {
+                        var checkMessage = await e.Channel.GetMessageAsync(reviveMessage.Id);
+                        
+                        if (checkMessage is not null)
+                        {
+                            var expiredEmbed = MessageHelpers.GenericErrorEmbed(
+                                title: "⏳ Revive Request Expired!", 
+                                message: "Looks like no one acted in time... The count is lost."
+                            );
+
+                            var builder = new DiscordMessageBuilder()
+                                .AddEmbed(expiredEmbed);
+
+                            builder.ClearComponents();
+
+                            await reviveMessage.ModifyAsync(builder).ConfigureAwait(false);
+                            _ = e.Message.CreateReactionAsync(_wrongEmoji!);
+                            _ = _guildSettingsService.SetChannelsCurrentCount(e.Guild.Id, e.Channel.Id, 0);
+                            _ = _userInformationService.UpdateUserCountAsync(e.Guild.Id, e.Author.Id, parsedNumber, false);
+                            _count[(e.Guild.Id, e.Channel.Id)] = (messageId, await _guildSettingsService.GetChannelsCurrentCount(e.Guild.Id, e.Channel.Id));
+                            ResetCooldowns(channelId);
+                        }
+                        return;
+                    }
+                    catch (DSharpPlus.Exceptions.NotFoundException)
+                    {
+                        // The message was deleted, so do nothing
+                    }
+
+                    Log.Warning("Invalid count in channel {ChannelId}. Expected {Expected}, but got {ParsedNumber}. Resetting state.", channelId, currentCount + 1, parsedNumber);
                 }
             }
+
             finally
             {
                 semaphore.Release();
             }
+        }
+
+        private async Task<(bool Success, int Result)> TryEvaluateExpressionAsync(ulong guildId, DiscordMessage message, int baseValue)
+        {
+            int result = 0;
+            string input = message.Content;
+            try
+            {
+                bool containsMath = input.Contains('+') || input.Contains('-') || input.Contains('*') ||
+                                    input.Contains('/') || input.Contains('(') || input.Contains(')') || input.Contains('^');
+
+                if (containsMath)
+                {
+                    if (!await _guildSettingsService.GetMathEnabledAsync(guildId))
+                    {
+                        var embed = MessageHelpers.GenericErrorEmbed(title:"Math isnt Enabled.", message:"Math expressions are not enabled in this guild.");
+                        var warningMessage = await message.RespondAsync(embed);
+                        _ = DeleteMessagesAsync(message, warningMessage, 2500);
+                        return(false, result);
+                    }
+
+                    var expression = new Expression(input, EvaluateOptions.NoCache);
+                    var evaluation = expression.Evaluate();
+
+                    if (evaluation is int intResult)
+                    {
+                        result = intResult;
+                        return (true, result);
+                    }
+
+                    else if (evaluation is double doubleResult)
+                    {
+                        result = (int)Math.Round(doubleResult);
+                        return (true, result);
+                    }
+                }
+
+                else
+                {
+                    result = Convert.ToInt32(input, baseValue);
+                    return (true, result);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to evaluate expression '{Expression}' with base {Base}. Error: {Error}", input, baseValue, ex.Message);
+            }
+
+            return (false, result);
         }
 
         private bool IsUserOnCooldown(ulong channelId, ulong userId)

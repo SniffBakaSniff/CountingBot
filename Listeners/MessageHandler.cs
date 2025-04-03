@@ -199,7 +199,7 @@ namespace CountingBot.Listeners
                         return(false, result);
                     }
 
-                    var expression = new Expression(input, EvaluateOptions.NoCache);
+                    var expression = new Expression(input);
                     var evaluation = expression.Evaluate();
 
                     if (evaluation is int intResult)

@@ -189,9 +189,13 @@ namespace CountingBot.Listeners
                 {
                     if (!await _guildSettingsService.GetMathEnabledAsync(guildId))
                     {
-                        var embed = MessageHelpers.GenericErrorEmbed(title:"Math isnt Enabled.", message:"Math expressions are not enabled in this guild.");
-                        var warningMessage = await message.RespondAsync(embed);
-                        _ = DeleteMessagesAsync(message, warningMessage, 2500);
+                        var warningEmbed = new DiscordEmbedBuilder()
+                            .WithTitle("⚠️ Math is Disabled!")
+                            .WithDescription("This guild doesn't allow math expressions for counting. Keep it simple—just type the number!")
+                            .WithColor(DiscordColor.Orange)
+                            .Build();
+
+                        await message.RespondAsync(warningEmbed);
                         return(false, result);
                     }
 
@@ -206,8 +210,21 @@ namespace CountingBot.Listeners
 
                     else if (evaluation is double doubleResult)
                     {
-                        result = (int)Math.Round(doubleResult);
-                        return (true, result);
+
+                        if (doubleResult % 1 is 0)
+                        {
+                            result = (int)doubleResult;
+                            return (true, result);
+                        }
+
+                        var warningEmbed = new DiscordEmbedBuilder()
+                            .WithTitle("⚠️ Invalid Result!")
+                            .WithDescription($"The expression `{message.Content} = {doubleResult}` does not evaluate to a whole number! Only whole numbers are allowed.")
+                            .WithColor(DiscordColor.Orange)
+                            .Build();
+
+                        await message.Channel!.SendMessageAsync(embed: warningEmbed);
+                        return (false, 0);
                     }
                 }
 

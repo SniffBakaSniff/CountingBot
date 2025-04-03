@@ -1,10 +1,11 @@
+using System;
+using System.Threading.Tasks;
 using System.ComponentModel;
 using CountingBot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
 using Serilog;
-
 using CountingBot.Services;
 
 namespace CountingBot.Features.Commands
@@ -22,28 +23,38 @@ namespace CountingBot.Features.Commands
             Log.Information("SetCountCommand invoked by {User} in guild {GuildId} for channel {ChannelId} with new count {NewCount}.",
                 ctx.User.Username, ctx.Guild?.Id, channel, newCount);
 
+            string lang = await _userInformationService.GetUserPreferredLanguageAsync(ctx.User.Id)
+                          ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(ctx.Guild!.Id)
+                          ?? "en";
+
             if (newCount < 0)
             {
                 Log.Warning("Invalid number value {NewCount} provided by {User}.", newCount, ctx.User.Username);
 
-                var errorEmbed = new DiscordEmbedBuilder
-                {
-                    Title = "Invalid number",
-                    Description = "The number cannot be negative.",
-                    Color = DiscordColor.Red
-                };
+                string invalidNumberTitle = await _languageService.GetLocalizedStringAsync("InvalidNumberTitle", lang);
+                string invalidNumberMsg = await _languageService.GetLocalizedStringAsync("InvalidNumberMessage", lang);
+                var errorEmbed = MessageHelpers.GenericErrorEmbed(invalidNumberTitle, invalidNumberMsg); 
                 await ctx.RespondAsync(embed: errorEmbed);
                 return;
             }
 
             try
             {
+                if (!await _guildSettingsService.CheckIfCountingChannel(ctx.Guild!.Id, channel))
+                {
+                    Log.Warning("User {User} tried to set count in a non-counting channel {ChannelId}.", ctx.User.Username, channel);
+
+                    string notCountingChannelTitle = await _languageService.GetLocalizedStringAsync("InvalidChannel", lang);
+                    string notCountingChannelMsg = await _languageService.GetLocalizedStringAsync("NotCountingChannel", lang);
+                    var errorEmbed = MessageHelpers.GenericErrorEmbed(notCountingChannelTitle, notCountingChannelMsg);
+                    await ctx.RespondAsync(embed: errorEmbed);
+                    return;
+                }
+
                 await _guildSettingsService.SetChannelsCurrentCount(ctx.Guild!.Id, channel, newCount);
 
-                var successEmbed = MessageHelpers.GenericSuccessEmbed(
-                    "Count Updated",
-                    $"The count for the selected channel has been set to **{newCount}**."
-                );
+                string countUpdatedMsg = await _languageService.GetLocalizedStringAsync("CountUpdated", lang);
+                var successEmbed = MessageHelpers.GenericSuccessEmbed("Count Updated", string.Format(countUpdatedMsg, newCount));
 
                 await ctx.RespondAsync(embed: successEmbed);
 
@@ -53,12 +64,8 @@ namespace CountingBot.Features.Commands
             {
                 Log.Error(ex, "An error occurred while updating the count for channel {ChannelId} in guild {GuildId}.", channel, ctx.Guild?.Id);
 
-                var errorEmbed = new DiscordEmbedBuilder
-                {
-                    Title = "Error",
-                    Description = "An error occurred while updating the count. Please try again later.",
-                    Color = DiscordColor.Red
-                };
+                string errorMsg = await _languageService.GetLocalizedStringAsync("GenericErrorMessage", lang);
+                var errorEmbed = MessageHelpers.GenericErrorEmbed("Error", errorMsg);
                 await ctx.RespondAsync(embed: errorEmbed);
             }
         }

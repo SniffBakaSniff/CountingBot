@@ -59,11 +59,9 @@ namespace CountingBot.Services.Database
                 using var dbContext = new BotDbContext();
                 Log.Information("Setting MathEnabled to {Enabled} for guild {GuildId}", enabled, guildId);
 
-                // Retrieve or create the guild settings
                 var settings = await GetOrCreateGuildSettingsAsync(dbContext, guildId).ConfigureAwait(false);
                 settings.MathEnabled = enabled;
 
-                // Save changes to the database
                 await dbContext.SaveChangesAsync().ConfigureAwait(false);
                 Log.Information("MathEnabled successfully updated to {Enabled} for guild {GuildId}", enabled, guildId);
             }).ConfigureAwait(false);
@@ -184,6 +182,41 @@ namespace CountingBot.Services.Database
 
                 Log.Information("Found {ChannelCount} counting channels for guild {GuildId}", channels.Count, guildId);
                 return channels;
+            }).ConfigureAwait(false);
+        }
+
+        public async Task<string> GetGuildPreferredLanguageAsync(ulong guildId)
+        {
+            return await ExceptionHandler.HandleAsync(async () =>
+            {
+                using var dbContext = new BotDbContext();
+                Log.Information("Fetching preferred language for guild {GuildId}.", guildId);
+
+                var guildSettings = await dbContext.GuildSettings.FindAsync(guildId).ConfigureAwait(false);
+
+                if (guildSettings == null)
+                {
+                    Log.Warning("No settings found for guild {GuildId}. Returning default language 'en'.", guildId);
+                    return "en";
+                }
+
+                Log.Information("Preferred language for guild {GuildId} is '{PreferredLanguage}'.", guildId, guildSettings.PreferredLanguage);
+                return guildSettings.PreferredLanguage ?? "en";
+            }).ConfigureAwait(false);
+        }
+
+        public async Task SetPreferedLanguageAsync(ulong guildId, string language)
+        {
+            await ExceptionHandler.HandleAsync(async () =>
+            {
+                using var dbContext = new BotDbContext();
+                Log.Information("Setting Prefered Language for guild {GuildId} to {Language}", guildId, language);
+
+                var settings = await GetOrCreateGuildSettingsAsync(dbContext, guildId).ConfigureAwait(false);
+                settings.PreferredLanguage = language;
+
+                await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                Log.Information("Prefered Language updated successfully for guild {GuildId}", guildId);
             }).ConfigureAwait(false);
         }
 

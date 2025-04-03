@@ -79,6 +79,7 @@ namespace CountingBot.Services.Database
                     if (removeRevive)
                     {
                         userInformation.Revives--;
+                        userInformation.RevivesUsed++;
                         Log.Information("User {UserId} used a revive. Remaining: {Revives}", 
                                         userId, userInformation.Revives);
 
@@ -91,6 +92,46 @@ namespace CountingBot.Services.Database
             }).ConfigureAwait(false);
         }
 
+        public async Task<string> GetUserPreferredLanguageAsync(ulong userId)
+        {
+            return await ExceptionHandler.HandleAsync(async () =>
+            {
+                using var dbContext = new BotDbContext();
+                Log.Information("Fetching preferred language for user {UserId}.", userId);
+
+                var userInfo = await dbContext.UserInformation.FindAsync(userId).ConfigureAwait(false);
+
+                if (userInfo == null)
+                {
+                    Log.Warning("No user information found for user {UserId}. Returning default language 'en'.", userId);
+                    return "en";
+                }
+
+                Log.Information("Preferred language for user {UserId} is '{PreferredLanguage}'.", userId, userInfo.PreferredLanguage);
+                return userInfo.PreferredLanguage ?? "en";
+            }).ConfigureAwait(false);
+        }
+        public async Task SetPreferredLanguageAsync(ulong userId, string language)
+        {
+            await ExceptionHandler.HandleAsync(async () =>
+            {
+                using var dbContext = new BotDbContext();
+                Log.Information("Setting preferred language for user {UserId}.", userId);
+
+                var userInfo = await dbContext.UserInformation.FindAsync(userId).ConfigureAwait(false);
+
+                if (userInfo == null)
+                {
+                    Log.Warning("No user information found for user {UserId}. Cannot set preferred language.", userId);
+                    return;
+                }
+
+                userInfo.PreferredLanguage = language;
+
+                await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                Log.Information("Successfully set preferred language for user {UserId} to '{PreferredLanguage}'.", userId, language);
+            }).ConfigureAwait(false);
+        }
 
         private async Task<UserInformation> GetOrCreateUserInformationAsync(BotDbContext dbContext, ulong userId)
         {

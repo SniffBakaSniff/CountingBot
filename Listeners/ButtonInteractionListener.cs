@@ -2,8 +2,10 @@ using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Serilog;
-using CountingBot.Helpers;
 using CountingBot.Services.Database;
+using CountingBot.Services;
+using System;
+using System.Threading.Tasks;
 
 namespace CountingBot.Listeners
 {
@@ -11,13 +13,16 @@ namespace CountingBot.Listeners
     {
         private readonly IUserInformationService _userInformationService;
         private readonly IGuildSettingsService _guildSettingsService;
+        private readonly ILanguageService _languageService;
 
         public ButtonInteractionListener(
             IGuildSettingsService guildSettingsService,
-            IUserInformationService userInformationService)
+            IUserInformationService userInformationService,
+            ILanguageService languageService)
         {
             _guildSettingsService = guildSettingsService;
             _userInformationService = userInformationService;
+            _languageService = languageService;
         }
 
         public async Task HandleButtonInteraction(DiscordClient client, ComponentInteractionCreatedEventArgs e)
@@ -52,14 +57,10 @@ namespace CountingBot.Listeners
             }
 
             await _userInformationService.GetUserRevivesAsync(e.User.Id, true).ConfigureAwait(false);
-
-            var (baseValue, currentCount) = await GetCountDetailsAsync(e.Guild.Id, e.Channel.Id).ConfigureAwait(false);
-            var parsedCount = Convert.ToString(currentCount, baseValue);
-
-            await HandleSuccessfulReviveAsync(e, referencedMessage, parsedCount).ConfigureAwait(false);
+            await HandleSuccessfulReviveAsync(e, referencedMessage).ConfigureAwait(false);
         }
 
-        private async Task HandleSuccessfulReviveAsync(ComponentInteractionCreatedEventArgs e, DiscordMessage referencedMessage, string parsedCount)
+        private async Task HandleSuccessfulReviveAsync(ComponentInteractionCreatedEventArgs e, DiscordMessage referencedMessage)
         {
             try
             {
@@ -74,9 +75,14 @@ namespace CountingBot.Listeners
             var (baseValue, currentCount) = await GetCountDetailsAsync(e.Guild.Id, e.Channel.Id).ConfigureAwait(false);
             var nextCount = Convert.ToString(currentCount + 1, baseValue);
 
+            string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild.Id) ?? "en";
+            var title = await _languageService.GetLocalizedStringAsync("CountRevivedTitle", lang);
+            var descriptionTemplate = await _languageService.GetLocalizedStringAsync("CountRevivedDescription", lang);
+            var description = string.Format(descriptionTemplate, nextCount);
+
             var revivedEmbed = new DiscordEmbedBuilder()
-                .WithTitle("✨ Count Revived!")
-                .WithDescription($"The count is back! It's time to continue the challenge, the next number to count is **{nextCount}**.")
+                .WithTitle(title)
+                .WithDescription(description)
                 .WithColor(DiscordColor.Green)
                 .WithTimestamp(DateTime.UtcNow)
                 .Build();
@@ -84,24 +90,27 @@ namespace CountingBot.Listeners
             await e.Channel.SendMessageAsync(embed: revivedEmbed).ConfigureAwait(false);
         }
 
-
-        private static async Task<DiscordMessage?> GetReferencedMessageAsync(ComponentInteractionCreatedEventArgs e)
+        private async Task<DiscordMessage?> GetReferencedMessageAsync(ComponentInteractionCreatedEventArgs e)
         {
             if (e.Message.Reference?.Message == null)
             {
                 Log.Warning("No referenced message for interaction {InteractionId}", e.Id);
+                string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild.Id) ?? "en";
+                string errorMsg = await _languageService.GetLocalizedStringAsync("OriginalMessageNotFound", lang);
                 await e.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource,
-                    new DiscordInteractionResponseBuilder().WithContent("Error: Original message not found"));
+                    new DiscordInteractionResponseBuilder().WithContent(errorMsg));
                 return null;
             }
 
             return await e.Channel.GetMessageAsync(e.Message.Reference.Message.Id).ConfigureAwait(false);
         }
 
-        private static async Task RespondNoRevivesAsync(ComponentInteractionCreatedEventArgs e)
+        private async Task RespondNoRevivesAsync(ComponentInteractionCreatedEventArgs e)
         {
             Log.Information("User {UserId} has no revives", e.User.Id);
-            await RespondToInteractionAsync(e, "You have no revives left!").ConfigureAwait(false);
+            string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild.Id) ?? "en";
+            string content = await _languageService.GetLocalizedStringAsync("NoRevivesLeftMessage", lang);
+            await RespondToInteractionAsync(e, content).ConfigureAwait(false);
         }
 
         private static async Task RespondToInteractionAsync(ComponentInteractionCreatedEventArgs e, string content)

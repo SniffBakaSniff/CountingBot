@@ -16,6 +16,7 @@ namespace CountingBot.Database.Models
     {
         [Key]
         public ulong UserId { get; set; }
+        public string PreferredLanguage { get; set; } = "en";
         public Dictionary<ulong, CountingStats> CountingData { get; set; } = new Dictionary<ulong, CountingStats>();
         public int Coins { get; set; }
         public int ExperiencePoints { get; set; }

@@ -1,12 +1,15 @@
-using CountingBot.Helpers;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
-using Serilog;
-using System.Collections.Concurrent;
-
-using CountingBot.Services.Database;
 using NCalc;
+using Serilog;
+using CountingBot.Services.Database;
+using CountingBot.Services;
 
 namespace CountingBot.Listeners
 {
@@ -14,6 +17,7 @@ namespace CountingBot.Listeners
     {
         private readonly IGuildSettingsService _guildSettingsService;
         private readonly IUserInformationService _userInformationService;
+        private readonly ILanguageService _languageService;
         private readonly ConcurrentDictionary<ulong, HashSet<ulong>> _cooldowns = new();
         private readonly ConcurrentDictionary<(ulong GuildId, ulong ChannelId), (ulong? messageId, int)> _count = new();
         private readonly ConcurrentDictionary<ulong, SemaphoreSlim> _channelSemaphores = new();
@@ -21,10 +25,11 @@ namespace CountingBot.Listeners
         private DiscordEmoji? _correctEmoji;
         private DiscordEmoji? _wrongEmoji;
 
-        public MessageHandler(IGuildSettingsService guildSettingsService, IUserInformationService userInformationService)
+        public MessageHandler(IGuildSettingsService guildSettingsService, IUserInformationService userInformationService, ILanguageService languageService)
         {
             _guildSettingsService = guildSettingsService;
             _userInformationService = userInformationService;
+            _languageService = languageService;
         }
 
         public async Task HandleMessageDeleted(DiscordClient client, MessageDeletedEventArgs e)
@@ -37,10 +42,15 @@ namespace CountingBot.Listeners
             {
                 int baseValue = await _guildSettingsService.GetChannelBase(guildId, channelId);
                 string parsedCurrentCount = Convert.ToString(currentCount, baseValue);
+                string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(guildId) ?? "en";
+
+                var title = await _languageService.GetLocalizedStringAsync("CountMessageDeletedTitle", lang);
+                var descTemplate = await _languageService.GetLocalizedStringAsync("CountMessageDeletedDescription", lang);
+                string description = string.Format(descTemplate, parsedCurrentCount);
 
                 var countResetEmbed = new DiscordEmbedBuilder()
-                    .WithTitle("⚠️ Count Message Deleted!")
-                    .WithDescription($"The latest count message was deleted! The current count is **{parsedCurrentCount}**.")
+                    .WithTitle(title)
+                    .WithDescription(description)
                     .WithColor(DiscordColor.Red)
                     .Build();
 
@@ -68,7 +78,6 @@ namespace CountingBot.Listeners
 
                 await ProcessCountingMessage(e, baseValue);
             }
-
             else
             {
                 Log.Debug("Message received in a non-counting channel. Ignoring.");
@@ -102,10 +111,14 @@ namespace CountingBot.Listeners
                 if (IsUserOnCooldown(channelId, e.Author.Id))
                 {
                     Log.Warning("User {User} is on cooldown in channel {ChannelId}.", e.Author.Username, channelId);
-                    var embed = MessageHelpers.GenericErrorEmbed(
-                        title: "Slowdown!",
-                        message: "You are counting too fast! Please slow down."
-                    );
+                    string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild.Id) ?? "en";
+                    var title = await _languageService.GetLocalizedStringAsync("SlowdownTitle", lang);
+                    var messageText = await _languageService.GetLocalizedStringAsync("SlowdownMessage", lang);
+                    var embed = new DiscordEmbedBuilder()
+                        .WithTitle(title)
+                        .WithDescription(messageText)
+                        .WithColor(DiscordColor.Orange)
+                        .Build();
                     var warningMessage = await e.Message.RespondAsync(embed);
                     _ = DeleteMessagesAsync(e.Message, warningMessage, 2500);
                     return;
@@ -122,37 +135,43 @@ namespace CountingBot.Listeners
                     _ = _guildSettingsService.SetChannelsCurrentCount(e.Guild.Id, e.Channel.Id, parsedNumber);
                     _ = _userInformationService.UpdateUserCountAsync(e.Guild.Id, e.Author.Id, parsedNumber, true);
                 }
-
                 else
                 {
-                    var reviveEmbed = MessageHelpers.GenericErrorEmbed(
-                        title: "Disaster Strikes! ⚠️", 
-                        message: "Oh no! The count has fallen! ⏳ Time is running out—will someone step up and use a revive?"
-                    );
+                    string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild.Id) ?? "en";
+                    var reviveTitle = await _languageService.GetLocalizedStringAsync("DisasterStrikesTitle", lang);
+                    var reviveMessageTemplate = await _languageService.GetLocalizedStringAsync("DisasterStrikesMessage", lang);
+                    var reviveButtonMessage = await _languageService.GetLocalizedStringAsync("ReviveButtonMessage", lang);
+                    var reviveEmbed = new DiscordEmbedBuilder()
+                        .WithTitle(reviveTitle)
+                        .WithDescription(reviveMessageTemplate)
+                        .WithColor(DiscordColor.Orange)
+                        .Build();
 
-                    var reviveMessage = await e.Message.RespondAsync(new DiscordMessageBuilder().AddEmbed(reviveEmbed).AddComponents(
-                        new DiscordButtonComponent(DiscordButtonStyle.Primary, "use_revive", "⚡ Revive the Count!")
-                    ));
+                    var reviveResponse = new DiscordMessageBuilder().AddEmbed(reviveEmbed).AddComponents(
+                        new DiscordButtonComponent(DiscordButtonStyle.Primary, "use_revive", reviveButtonMessage)
+                    );
+                    var reviveMsg = await e.Message.RespondAsync(reviveResponse);
 
                     await Task.Delay(30000);
 
                     try
                     {
-                        var checkMessage = await e.Channel.GetMessageAsync(reviveMessage.Id);
+                        var checkMessage = await e.Channel.GetMessageAsync(reviveMsg.Id);
                         
                         if (checkMessage is not null)
                         {
-                            var expiredEmbed = MessageHelpers.GenericErrorEmbed(
-                                title: "⏳ Revive Request Expired!", 
-                                message: "Looks like no one acted in time... The count is lost."
-                            );
+                            var expiredTitle = await _languageService.GetLocalizedStringAsync("ReviveRequestExpiredTitle", lang);
+                            var expiredTemplate = await _languageService.GetLocalizedStringAsync("ReviveRequestExpiredMessage", lang);
+                            var expiredEmbed = new DiscordEmbedBuilder()
+                                .WithTitle(expiredTitle)
+                                .WithDescription(expiredTemplate)
+                                .WithColor(DiscordColor.Red)
+                                .Build();
 
-                            var builder = new DiscordMessageBuilder()
-                                .AddEmbed(expiredEmbed);
-
+                            var builder = new DiscordMessageBuilder().AddEmbed(expiredEmbed);
                             builder.ClearComponents();
 
-                            await reviveMessage.ModifyAsync(builder).ConfigureAwait(false);
+                            await reviveMsg.ModifyAsync(builder).ConfigureAwait(false);
                             _ = e.Message.CreateReactionAsync(_wrongEmoji!);
                             _ = _guildSettingsService.SetChannelsCurrentCount(e.Guild.Id, e.Channel.Id, 0);
                             _ = _userInformationService.UpdateUserCountAsync(e.Guild.Id, e.Author.Id, parsedNumber, false);
@@ -169,7 +188,6 @@ namespace CountingBot.Listeners
                     Log.Warning("Invalid count in channel {ChannelId}. Expected {Expected}, but got {ParsedNumber}. Resetting state.", channelId, currentCount + 1, parsedNumber);
                 }
             }
-
             finally
             {
                 semaphore.Release();
@@ -189,14 +207,17 @@ namespace CountingBot.Listeners
                 {
                     if (!await _guildSettingsService.GetMathEnabledAsync(guildId))
                     {
+                        string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(guildId) ?? "en";
+                        var mathDisabledTitle = await _languageService.GetLocalizedStringAsync("MathDisabledTitle", lang);
+                        var mathDisabledDesc = await _languageService.GetLocalizedStringAsync("MathDisabledDescription", lang);
                         var warningEmbed = new DiscordEmbedBuilder()
-                            .WithTitle("⚠️ Math is Disabled!")
-                            .WithDescription("This guild doesn't allow math expressions for counting. Keep it simple—just type the number!")
+                            .WithTitle(mathDisabledTitle)
+                            .WithDescription(mathDisabledDesc)
                             .WithColor(DiscordColor.Orange)
                             .Build();
 
                         await message.RespondAsync(warningEmbed);
-                        return(false, result);
+                        return (false, result);
                     }
 
                     var expression = new Expression(input);
@@ -207,19 +228,20 @@ namespace CountingBot.Listeners
                         result = intResult;
                         return (true, result);
                     }
-
                     else if (evaluation is double doubleResult)
                     {
-
                         if (doubleResult % 1 is 0)
                         {
                             result = (int)doubleResult;
                             return (true, result);
                         }
 
+                        string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(guildId) ?? "en";
+                        var invalidResultTitle = await _languageService.GetLocalizedStringAsync("InvalidResultTitle", lang);
+                        var invalidResultTemplate = await _languageService.GetLocalizedStringAsync("InvalidResultDescription", lang);
                         var warningEmbed = new DiscordEmbedBuilder()
-                            .WithTitle("⚠️ Invalid Result!")
-                            .WithDescription($"The expression `{message.Content} = {doubleResult}` does not evaluate to a whole number! Only whole numbers are allowed.")
+                            .WithTitle(invalidResultTitle)
+                            .WithDescription(string.Format(invalidResultTemplate, message.Content, doubleResult))
                             .WithColor(DiscordColor.Orange)
                             .Build();
 
@@ -227,7 +249,6 @@ namespace CountingBot.Listeners
                         return (false, 0);
                     }
                 }
-
                 else
                 {
                     result = Convert.ToInt32(input, baseValue);

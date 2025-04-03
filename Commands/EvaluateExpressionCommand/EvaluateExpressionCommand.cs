@@ -1,6 +1,9 @@
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using NCalc;
+using System;
+using System.Threading.Tasks;
+using CountingBot.Services;
 
 namespace CountingBot.Features.Commands
 {
@@ -11,42 +14,54 @@ namespace CountingBot.Features.Commands
         {
             string input = equation.Trim();
 
+            string lang = await _userInformationService.GetUserPreferredLanguageAsync(ctx.User.Id) 
+                        ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(ctx.Guild!.Id) ?? "en";
+
             if (string.IsNullOrEmpty(input))
             {
-                await ctx.RespondAsync("Please provide a valid mathematical expression.");
+                string emptyExprMsg = await _languageService.GetLocalizedStringAsync("EmptyExpressionMessage", lang);
+                await ctx.RespondAsync(emptyExprMsg);
                 return;
             }
 
             try
             {
-                var expression = new Expression(input); 
-                var evaluation = expression.Evaluate(); 
+                var expression = new Expression(input);
+                var evaluation = expression.Evaluate();
+
+                string title = await _languageService.GetLocalizedStringAsync("MathResultTitle", lang);
+                string footerTemplate = await _languageService.GetLocalizedStringAsync("MathResultFooter", lang);
+                string footer = string.Format(footerTemplate, ctx.User.Username);
+                string descriptionTemplate = await _languageService.GetLocalizedStringAsync("MathResultDescription", lang);
+                string description = string.Format(descriptionTemplate, input, evaluation);
 
                 var resultEmbed = new DiscordEmbedBuilder()
-                    .WithTitle("🧮 Math Result")
+                    .WithTitle(title)
                     .WithColor(DiscordColor.Green)
-                    .WithFooter($"Requested by {ctx.User.Username}", ctx.User.AvatarUrl)
+                    .WithFooter(footer, ctx.User.AvatarUrl)
                     .WithTimestamp(DateTime.Now);
-
-                string equationFormatted = $"**Expression:**\n`{input}`\n";
-                string resultFormatted = $"**Result:**\n**{evaluation}**";
 
                 if (input.Length > 100)
                 {
                     resultEmbed.AddField("Equation", input);
+                    resultEmbed.WithDescription($"**Result:**\n**{evaluation}**");
                 }
                 else
                 {
-                    resultEmbed.WithDescription($"{equationFormatted}{resultFormatted}");
+                    resultEmbed.WithDescription(description);
                 }
 
-                await ctx.RespondAsync(embed: resultEmbed);
+                await ctx.RespondAsync(embed: resultEmbed.Build());
             }
             catch (Exception ex)
             {
+                string errorTitle = await _languageService.GetLocalizedStringAsync("GenericErrorTitle", lang);
+                string errorTemplate = await _languageService.GetLocalizedStringAsync("GenericErrorMessage", lang);
+                string errorMessage = string.Format(errorTemplate, ex.Message);
+
                 var errorEmbed = new DiscordEmbedBuilder()
-                    .WithTitle("Error")
-                    .WithDescription($"There was an issue evaluating the expression `{input}`.\nError: {ex.Message}")
+                    .WithTitle(errorTitle)
+                    .WithDescription($"There was an issue evaluating the expression `{input}`.\n{errorMessage}")
                     .WithColor(DiscordColor.Red)
                     .Build();
 

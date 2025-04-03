@@ -1,51 +1,48 @@
 using DSharpPlus.Commands;
+using CountingBot.Helpers;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
+using Serilog;
 
 namespace CountingBot.Features.Commands
 {
     public partial class CommandsGroup
     {
-
         [Command("setup")]
+        [System.ComponentModel.Description("Set up a counting channel")]
         public async Task SetupAsync(CommandContext ctx, NumberSystem? type, DiscordChannel? channel)
         {
-
-            var name = channel!.Name;
+            string lang = await _userInformationService.GetUserPreferredLanguageAsync(ctx.User.Id)
+                         ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(ctx.Guild!.Id)
+                         ?? "en";
 
             if (type is null || channel is null)
             {
-                var embed = new DiscordEmbedBuilder()
-                    .WithTitle("Invalid Input")
-                    .WithDescription("You must provide both a number system and a channel.")
-                    .WithColor(DiscordColor.Red);
-
-                await ctx.RespondAsync(embed);
+                string errorMessage = await _languageService.GetLocalizedStringAsync("SetupInvalidInput", lang);
+                await ctx.RespondAsync(MessageHelpers.GenericErrorEmbed(errorMessage));
                 return;
             }
 
-            if (channel.Type != DiscordChannelType.Text)
+            if (channel!.Type != DiscordChannelType.Text)
             {
-                var embed = new DiscordEmbedBuilder()
-                    .WithTitle("Invalid Channel")
-                    .WithDescription("The specified channel must be a text channel.")
-                    .WithColor(DiscordColor.Red);
-
-                await ctx.RespondAsync(embed);
+                string errorMessage = await _languageService.GetLocalizedStringAsync("SetupInvalidChannel", lang);
+                await ctx.RespondAsync(MessageHelpers.GenericErrorEmbed(errorMessage));
                 return;
             }
 
             int baseValue = (int)type.Value;
 
-            await _guildSettingsService.SetCountingChannel(ctx.Guild!.Id, channel.Id, baseValue, name);
-            
-            var successEmbed = new DiscordEmbedBuilder()
-                .WithTitle("Setup Complete")
-                .WithDescription($"The counting channel has been set to {channel.Mention} with a base of {baseValue}.")
-                .WithColor(DiscordColor.Green);
+            Log.Information("Setting up counting channel {ChannelId} in {GuildId} with base {Base}.", channel.Id, ctx.Guild!.Id, baseValue);
 
+            await _guildSettingsService.SetCountingChannel(ctx.Guild.Id, channel.Id, baseValue, channel.Name);
 
-            await ctx.RespondAsync(successEmbed);
+            string successTitle = await _languageService.GetLocalizedStringAsync("SetupSuccessTitle", lang);
+            string successDescTemplate = await _languageService.GetLocalizedStringAsync("SetupSuccessDescription", lang);
+            string successDesc = string.Format(successDescTemplate, channel.Mention, baseValue);
+
+            await ctx.RespondAsync(MessageHelpers.GenericSuccessEmbed(successTitle, successDesc));
+
+            Log.Information("Counting channel {ChannelId} successfully set up in {GuildId} with base {Base}.", channel.Id, ctx.Guild!.Id, baseValue);
         }
     }
 
@@ -56,12 +53,11 @@ namespace CountingBot.Features.Commands
 
         [ChoiceDisplayName("Octal (Base-8)")]
         Octal = 8,
-        
+
         [ChoiceDisplayName("Decimal (Base-10)")]
         Decimal = 10,
 
         [ChoiceDisplayName("Hexadecimal (Base-16)")]
         Hexadecimal = 16
     }
-
 }

@@ -8,6 +8,7 @@ namespace CountingBot.Database.Models
         public ulong GuildId { get; set; }
         public string Prefix { get; set; } = "!";
         public bool MathEnabled { get; set; } = false;
+        public string PreferredLanguage { get; set; } = "en";
     }
 
     public class ChannelSettings

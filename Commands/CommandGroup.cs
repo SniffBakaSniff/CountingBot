@@ -1,3 +1,4 @@
+using CountingBot.Services;
 using CountingBot.Services.Database;
 namespace CountingBot.Features.Commands
 {
@@ -5,12 +6,16 @@ namespace CountingBot.Features.Commands
     {
 
         private readonly IGuildSettingsService _guildSettingsService;
-        private readonly IUserInformationService _userInforamtionService;
+        private readonly IUserInformationService _userInformationService;
+        private readonly ILanguageService _languageService;
 
-        public CommandsGroup(IGuildSettingsService guildSettingsService, IUserInformationService userInformationService)
+        public CommandsGroup(IGuildSettingsService guildSettingsService,
+                             IUserInformationService userInformationService,
+                             ILanguageService languageService)
         {
             _guildSettingsService = guildSettingsService;
-            _userInforamtionService = userInformationService;
+            _userInformationService = userInformationService;
+            _languageService = languageService;
         }
     }
 }

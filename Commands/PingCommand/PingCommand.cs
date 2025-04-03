@@ -1,5 +1,8 @@
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
+using System;
+using System.Threading.Tasks;
+using CountingBot.Services;
 
 namespace CountingBot.Features.Commands
 {
@@ -10,20 +13,30 @@ namespace CountingBot.Features.Commands
         [Command("ping")]
         public async Task PingAsync(CommandContext ctx)
         {
+            string lang = await _userInformationService.GetUserPreferredLanguageAsync(ctx.User.Id)
+                          ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(ctx.Guild!.Id)
+                          ?? "en";
+
             var latency = ctx.Client.GetConnectionLatency(ctx.Guild!.Id);
             var roundedLatency = Math.Round(latency.TotalMilliseconds);
             var uptime = DateTime.UtcNow - _botStartTime;
+
+            var title = await _languageService.GetLocalizedStringAsync("PingTitle", lang);
+            var latencyField = await _languageService.GetLocalizedStringAsync("PingLatencyField", lang);
+            var uptimeField = await _languageService.GetLocalizedStringAsync("PingUptimeField", lang);
+
             var embed = new DiscordEmbedBuilder()
-                .WithTitle("🏓 Pong!")
-                .AddField("Latency", $"{roundedLatency} ms", true)
-                .AddField("Bot Uptime", $"{uptime.Days}d {uptime.Hours}h {uptime.Minutes}m", true)
+                .WithTitle(title)
+                .AddField(latencyField, $"{roundedLatency} ms", true)
+                .AddField(uptimeField, $"{uptime.Days}d {uptime.Hours}h {uptime.Minutes}m", true)
                 .WithColor(DiscordColor.Cyan)
                 .WithTimestamp(DateTime.UtcNow);
 
-            var msg = new DiscordInteractionResponseBuilder().AsEphemeral().AddEmbed(embed);
+            var response = new DiscordInteractionResponseBuilder()
+                .AsEphemeral()
+                .AddEmbed(embed.Build());
 
-            await ctx.RespondAsync(msg);
-
+            await ctx.RespondAsync(response);
         }
     }
 }

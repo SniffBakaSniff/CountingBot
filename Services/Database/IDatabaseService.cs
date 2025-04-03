@@ -14,6 +14,8 @@ namespace CountingBot.Services.Database
         Task SetChannelsCurrentCount(ulong guildId, ulong channelId, int currentCount);
         Task<int> GetChannelsCurrentCount(ulong guildId, ulong channelId);
         Task<Dictionary<string, ulong>> GetCountingChannels(ulong guildId);
+        Task<string> GetGuildPreferredLanguageAsync(ulong guildId);
+        Task SetPreferedLanguageAsync(ulong guildId, string language);
     }
 
     public interface IUserInformationService
@@ -21,5 +23,7 @@ namespace CountingBot.Services.Database
         Task<UserInformation> GetUserInformationAsync(ulong userId);
         Task UpdateUserCountAsync(ulong guildId, ulong userId, int currentCount, bool correctCount);
         Task<bool> GetUserRevivesAsync(ulong userId, bool removeRevive);
+        Task<string> GetUserPreferredLanguageAsync(ulong userId);
+        Task SetPreferredLanguageAsync(ulong userId, string language);
     }
 }

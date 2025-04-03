@@ -62,10 +62,11 @@ namespace CountingBot
                         services.AddScoped<IGuildSettingsService, GuildSettingsService>();
                         services.AddScoped<IUserInformationService, UserInformationService>();
                         services.AddScoped<IStringInterpolatorService, StringInterpolatorService>();
+                        services.AddScoped<ILanguageService, LanguageService>();
                     });
 
-                var buttonInteractionHandler = new ButtonInteractionListener(new GuildSettingsService(), new UserInformationService());
-                var messageHandler = new MessageHandler(new GuildSettingsService(), new UserInformationService());
+                var buttonInteractionHandler = new ButtonInteractionListener(new GuildSettingsService(), new UserInformationService(), new LanguageService());
+                var messageHandler = new MessageHandler(new GuildSettingsService(), new UserInformationService(), new LanguageService());
 
                 builder.ConfigureEventHandlers(b =>
                 {

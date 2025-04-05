@@ -39,6 +39,8 @@ namespace CountingBot.Features.Commands
         [ChoiceDisplayName("English")]
         en,
         [ChoiceDisplayName("Weeblish")]
-        weeblish
+        weeblish,
+        [ChoiceDisplayName("Trollish")]
+        trollish
     }
 }

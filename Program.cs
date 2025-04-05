@@ -12,14 +12,25 @@ using CountingBot.Services;
 using CountingBot.Services.Database;
 using CountingBot.Features.Commands;
 using CountingBot.Database;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace CountingBot
 {
     static class Program
     {
+        public static readonly DateTime _botStartTime = DateTime.UtcNow;
         public static async Task Main(string[] args)
         {
+
+            if (args.Length > 0)
+            {
+                // If there are any arguments, stop the bot from running
+                // So i can run dotnet ef without starting the bot
+                Console.WriteLine("Arguments detected. Bot will not start.");
+                return;
+            }
+
             // Configure Serilog
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()
@@ -63,16 +74,21 @@ namespace CountingBot
                         services.AddScoped<IUserInformationService, UserInformationService>();
                         services.AddScoped<IStringInterpolatorService, StringInterpolatorService>();
                         services.AddScoped<ILanguageService, LanguageService>();
+                        services.AddScoped<ILeaderboardService, LeaderboardService>();
                     });
 
                 var buttonInteractionHandler = new ButtonInteractionListener(new GuildSettingsService(), new UserInformationService(), new LanguageService());
                 var messageHandler = new MessageHandler(new GuildSettingsService(), new UserInformationService(), new LanguageService());
+                var joinEventHandler = new JoinEventsHandler(new GuildSettingsService());
+                var leaveEventHandler = new LeaveEventsHandler(new GuildSettingsService());
 
                 builder.ConfigureEventHandlers(b =>
                 {
                     b.HandleComponentInteractionCreated(buttonInteractionHandler.HandleButtonInteraction);
                     b.HandleMessageCreated(messageHandler.HandleMessage);
                     b.HandleMessageDeleted(messageHandler.HandleMessageDeleted);
+                    b.HandleGuildCreated(joinEventHandler.HandleJoinEvents);
+                    b.HandleGuildDeleted(leaveEventHandler.HandleLeaveEvents);
                 });
 
                 builder.UseCommands(
@@ -94,7 +110,7 @@ namespace CountingBot
                     },
                     new CommandsConfiguration()
                     {
-                        DebugGuildId = 1345544197310255134,
+                        //DebugGuildId = 1345544197310255134,
                         RegisterDefaultCommandProcessors = true,
                         UseDefaultCommandErrorHandler = false
                     });

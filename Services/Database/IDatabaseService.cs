@@ -16,6 +16,8 @@ namespace CountingBot.Services.Database
         Task<Dictionary<string, ulong>> GetCountingChannels(ulong guildId);
         Task<string> GetGuildPreferredLanguageAsync(ulong guildId);
         Task SetPreferedLanguageAsync(ulong guildId, string language);
+        Task DeleteGuildSettings(ulong guildId);
+        Task<GuildSettings> GetOrCreateGuildSettingsAsync(ulong guildId);
     }
 
     public interface IUserInformationService
@@ -26,4 +28,10 @@ namespace CountingBot.Services.Database
         Task<string> GetUserPreferredLanguageAsync(ulong userId);
         Task SetPreferredLanguageAsync(ulong userId, string language);
     }
+
+    public interface ILeaderboardService
+    {
+        Task<Dictionary<string, List<UserInformation>>> GetLeaderboardsAsync(int pageNumber, int pageSize, ulong guildId);
+    }
+
 }

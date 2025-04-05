@@ -1,15 +1,10 @@
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
-using System;
-using System.Threading.Tasks;
-using CountingBot.Services;
 
 namespace CountingBot.Features.Commands
 {
     public partial class CommandsGroup
     {
-        private static readonly DateTime _botStartTime = DateTime.UtcNow;
-
         [Command("ping")]
         public async Task PingAsync(CommandContext ctx)
         {
@@ -19,7 +14,7 @@ namespace CountingBot.Features.Commands
 
             var latency = ctx.Client.GetConnectionLatency(ctx.Guild!.Id);
             var roundedLatency = Math.Round(latency.TotalMilliseconds);
-            var uptime = DateTime.UtcNow - _botStartTime;
+            var uptime = DateTime.UtcNow - Program._botStartTime;
 
             var title = await _languageService.GetLocalizedStringAsync("PingTitle", lang);
             var latencyField = await _languageService.GetLocalizedStringAsync("PingLatencyField", lang);

@@ -44,7 +44,7 @@ namespace CountingBot.Services.Database
                 using var dbContext = new BotDbContext();
                 Log.Information("Setting prefix for guild {GuildId} to {Prefix}", guildId, prefix);
 
-                var settings = await GetOrCreateGuildSettingsAsync(dbContext, guildId).ConfigureAwait(false);
+                var settings = await GetOrCreateGuildSettingsAsync(guildId).ConfigureAwait(false);
                 settings.Prefix = prefix;
 
                 await dbContext.SaveChangesAsync().ConfigureAwait(false);
@@ -59,7 +59,7 @@ namespace CountingBot.Services.Database
                 using var dbContext = new BotDbContext();
                 Log.Information("Setting MathEnabled to {Enabled} for guild {GuildId}", enabled, guildId);
 
-                var settings = await GetOrCreateGuildSettingsAsync(dbContext, guildId).ConfigureAwait(false);
+                var settings = await GetOrCreateGuildSettingsAsync(guildId).ConfigureAwait(false);
                 settings.MathEnabled = enabled;
 
                 await dbContext.SaveChangesAsync().ConfigureAwait(false);
@@ -93,6 +93,10 @@ namespace CountingBot.Services.Database
 
                 var channelSettings = await GetOrCreateChannelSettingsAsync(dbContext, guildId, channelId).ConfigureAwait(false);
                 channelSettings.CurrentCount = currentCount;
+                if (currentCount > channelSettings.Highescore)
+                {
+                    channelSettings.Highescore++;
+                }
 
                 await dbContext.SaveChangesAsync().ConfigureAwait(false);
                 Log.Information("Current count updated for channel {ChannelId} in guild {GuildId}", channelId, guildId);
@@ -145,7 +149,7 @@ namespace CountingBot.Services.Database
                     .SingleOrDefaultAsync(c => c.ChannelId == channelId && c.GuildId == guildId)
                     .ConfigureAwait(false);
 
-                if (channelSettings == null)
+                if (channelSettings is null)
                 {
                     Log.Warning("No settings found for channel {ChannelId} in guild {GuildId}. Returning 0.", channelId, guildId);
                     return 0;
@@ -194,7 +198,7 @@ namespace CountingBot.Services.Database
 
                 var guildSettings = await dbContext.GuildSettings.FindAsync(guildId).ConfigureAwait(false);
 
-                if (guildSettings == null)
+                if (guildSettings is null)
                 {
                     Log.Warning("No settings found for guild {GuildId}. Returning default language 'en'.", guildId);
                     return "en";
@@ -212,7 +216,7 @@ namespace CountingBot.Services.Database
                 using var dbContext = new BotDbContext();
                 Log.Information("Setting Prefered Language for guild {GuildId} to {Language}", guildId, language);
 
-                var settings = await GetOrCreateGuildSettingsAsync(dbContext, guildId).ConfigureAwait(false);
+                var settings = await GetOrCreateGuildSettingsAsync(guildId).ConfigureAwait(false);
                 settings.PreferredLanguage = language;
 
                 await dbContext.SaveChangesAsync().ConfigureAwait(false);
@@ -220,17 +224,70 @@ namespace CountingBot.Services.Database
             }).ConfigureAwait(false);
         }
 
-        private async Task<GuildSettings> GetOrCreateGuildSettingsAsync(BotDbContext dbContext, ulong guildId)
+        public async Task DeleteGuildSettings(ulong guildId)
         {
+            using var dbContext = new BotDbContext();
+
+            var guildSettings = await dbContext.GuildSettings.FindAsync(guildId).ConfigureAwait(false);
+            var channelSettings = await dbContext.ChannelSettings
+                .Where(c => c.GuildId == guildId)
+                .ToListAsync()
+                .ConfigureAwait(false);
+
+            if (guildSettings is null && channelSettings.Count == 0)
+            {
+                Log.Information("No GuildSettings or ChannelSettings found for guild {GuildId}.", guildId);
+                return;
+            }
+
+            if (guildSettings != null)
+            {
+                dbContext.GuildSettings.Remove(guildSettings);
+                Log.Information("Removed GuildSettings for guild {GuildId}.", guildId);
+            }
+            else
+            {
+                Log.Information("No GuildSettings found for guild {GuildId}.", guildId);
+            }
+
+            if (channelSettings.Count > 0)
+            {
+                dbContext.ChannelSettings.RemoveRange(channelSettings);
+                Log.Information("Removed {Count} ChannelSettings for guild {GuildId}.", channelSettings.Count, guildId);
+            }
+            else
+            {
+                Log.Information("No ChannelSettings found for guild {GuildId}.", guildId);
+            }
+
+            await dbContext.SaveChangesAsync().ConfigureAwait(false);
+            Log.Information("Completed deletion of settings for guild {GuildId}.", guildId);
+        }
+
+
+        public async Task<GuildSettings> GetOrCreateGuildSettingsAsync(ulong guildId)
+        {
+            using var dbContext = new BotDbContext();
             var settings = await dbContext.GuildSettings.FindAsync(guildId).ConfigureAwait(false);
-            if (settings == null)
+            if (settings is null)
             {
                 Log.Information("No GuildSettings found for guild {GuildId}. Creating new settings entry.", guildId);
-                settings = new GuildSettings { GuildId = guildId };
+
+                settings = new GuildSettings 
+                { 
+                    GuildId = guildId,
+                    Prefix = "!",
+                    MathEnabled = false,
+                    PreferredLanguage = "en"
+                };
+
                 dbContext.GuildSettings.Add(settings);
+                await dbContext.SaveChangesAsync().ConfigureAwait(false);
+                Log.Information("Created new GuildSettings for guild {GuildId}: {@GuildSettings}", guildId, settings);
             }
             return settings;
         }
+
 
         private async Task<ChannelSettings> GetOrCreateChannelSettingsAsync(BotDbContext dbContext, ulong guildId, ulong channelId)
         {
@@ -238,7 +295,7 @@ namespace CountingBot.Services.Database
                 .SingleOrDefaultAsync(c => c.ChannelId == channelId && c.GuildId == guildId)
                 .ConfigureAwait(false);
 
-            if (channelSettings == null)
+            if (channelSettings is null)
             {
                 Log.Information("No ChannelSettings found for channel {ChannelId} in guild {GuildId}. Creating new entry.", channelId, guildId);
                 channelSettings = new ChannelSettings
@@ -247,6 +304,7 @@ namespace CountingBot.Services.Database
                     ChannelId = channelId
                 };
                 dbContext.ChannelSettings.Add(channelSettings);
+                await dbContext.SaveChangesAsync().ConfigureAwait(false);
             }
             return channelSettings;
         }

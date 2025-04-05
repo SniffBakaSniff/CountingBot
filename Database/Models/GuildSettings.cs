@@ -19,5 +19,6 @@ namespace CountingBot.Database.Models
         public string? Name { get; set; }
         public int Base { get; set; } = 10;
         public int CurrentCount { get; set; } = 0;
+        public int Highescore { get; set; } = 0;
     }
 }

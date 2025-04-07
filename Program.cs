@@ -33,6 +33,7 @@ namespace CountingBot
 
             // Configure Serilog
             Log.Logger = new LoggerConfiguration()
+                //.MinimumLevel.Verbose()
                 .MinimumLevel.Debug()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
@@ -42,6 +43,7 @@ namespace CountingBot
                 .Enrich.WithProcessId()
                 .WriteTo.Console()
                 .WriteTo.Seq("http://localhost:5341") // Replace with your Seq server URL
+                .WriteTo.File("Data/logs/log.txt", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
 
             // Handle unobserved task exceptions
@@ -75,12 +77,28 @@ namespace CountingBot
                         services.AddScoped<IStringInterpolatorService, StringInterpolatorService>();
                         services.AddScoped<ILanguageService, LanguageService>();
                         services.AddScoped<ILeaderboardService, LeaderboardService>();
+                        services.AddSingleton<AchievementService>();
                     });
+                    
+                var dbContext = new BotDbContext();
+                var guildSettingsService = new GuildSettingsService();
+                var achievementService = new AchievementService(dbContext);
+                var userInformationService = new UserInformationService(achievementService, dbContext);
+                var languageService = new LanguageService();
+                var messageHandler = new MessageHandler(
+                    guildSettingsService, 
+                    userInformationService, 
+                    languageService);
+                var buttonInteractionHandler = new ButtonInteractionListener(
+                    guildSettingsService,
+                    userInformationService,
+                    languageService,
+                    messageHandler
+                );
 
-                var buttonInteractionHandler = new ButtonInteractionListener(new GuildSettingsService(), new UserInformationService(), new LanguageService());
-                var messageHandler = new MessageHandler(new GuildSettingsService(), new UserInformationService(), new LanguageService());
-                var joinEventHandler = new JoinEventsHandler(new GuildSettingsService());
-                var leaveEventHandler = new LeaveEventsHandler(new GuildSettingsService());
+                var joinEventHandler = new JoinEventsHandler(guildSettingsService);
+                var leaveEventHandler = new LeaveEventsHandler(guildSettingsService);
+
 
                 builder.ConfigureEventHandlers(b =>
                 {
@@ -104,16 +122,31 @@ namespace CountingBot
                             // PrefixResolver = new DefaultPrefixResolver(true, "?", ".").ResolvePrefixAsync
                         });
 
+                        SlashCommandProcessor slashCommandProcessor = new(new SlashCommandConfiguration
+                        {
+                            UnconditionallyOverwriteCommands = true
+                        });
+
                         extension.AddProcessors(textCommandProcessor);
+                        extension.AddProcessor(slashCommandProcessor);
 
                         extension.CommandErrored += EventHandlers.CommandErrored;
+
                     },
                     new CommandsConfiguration()
                     {
                         //DebugGuildId = 1345544197310255134,
                         RegisterDefaultCommandProcessors = true,
                         UseDefaultCommandErrorHandler = false
+
                     });
+
+                builder.ConfigureLogging(logging =>
+                {
+                    logging.ClearProviders();
+                    logging.AddSerilog();
+                });
+
 
                 client = builder.Build();
 

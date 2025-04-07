@@ -30,9 +30,12 @@ namespace CountingBot.Features.Commands
                 var evaluation = expression.Evaluate();
 
                 string title = await _languageService.GetLocalizedStringAsync("MathResultTitle", lang);
+                string titleKey = "MathResultTitle";
                 string footerTemplate = await _languageService.GetLocalizedStringAsync("MathResultFooter", lang);
                 string footer = string.Format(footerTemplate, ctx.User.Username);
+                string footerKey = "MathResultFooter";
                 string descriptionTemplate = await _languageService.GetLocalizedStringAsync("MathResultDescription", lang);
+                string descriptionKey = "MathResultDescription";
                 string description = string.Format(descriptionTemplate, input, evaluation);
 
                 var resultEmbed = new DiscordEmbedBuilder()
@@ -51,7 +54,9 @@ namespace CountingBot.Features.Commands
                     resultEmbed.WithDescription(description);
                 }
 
-                await ctx.RespondAsync(embed: resultEmbed.Build());
+                await ctx.RespondAsync(new DiscordMessageBuilder().AddEmbed(resultEmbed).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_{titleKey}_{descriptionKey}_{footerKey}", DiscordEmoji.FromUnicode("🌐"))
+                ));
             }
             catch (Exception ex)
             {

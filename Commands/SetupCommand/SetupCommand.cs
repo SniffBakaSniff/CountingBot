@@ -10,7 +10,7 @@ namespace CountingBot.Features.Commands
     {
         [Command("setup")]
         [System.ComponentModel.Description("Set up a counting channel")]
-        public async Task SetupAsync(CommandContext ctx, NumberSystem? type, DiscordChannel? channel)
+        public async Task SetupCommandAsync(CommandContext ctx, NumberSystem? type, DiscordChannel? channel)
         {
             string lang = await _userInformationService.GetUserPreferredLanguageAsync(ctx.User.Id)
                          ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(ctx.Guild!.Id)

@@ -20,9 +20,9 @@ namespace CountingBot.Services
                 return cachedStrings;
 
             string basePath = AppContext.BaseDirectory;
-            string filePath = Path.Combine(basePath, "Languages", $"{language}.json");
+            string filePath = Path.Combine(basePath, "Data/Languages", $"{language}.json");
             if (!File.Exists(filePath))
-                filePath = Path.Combine(basePath, "Languages", "en.json");
+                filePath = Path.Combine(basePath, "Data/Languages", "en.json");
 
             try
             {

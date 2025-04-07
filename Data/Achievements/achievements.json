@@ -1,0 +1,146 @@
+[
+  {
+    "id": "first_count",
+    "name": "FirstCountName",
+    "description": "FirstCountDescription",
+    "type": "Milestone",
+    "requirements": { "minTotalCounts": 1 },
+    "secret": false,
+    "trackProgress": false
+  },
+  {
+    "id": "level_5",
+    "name": "GettingStrongerName",
+    "description": "GettingStrongerDescription",
+    "type": "Milestone",
+    "requirements": { "minLevel": 5 },
+    "secret": false,
+    "trackProgress": true
+  },
+  {
+    "id": "ten_count",
+    "name": "TenCountName",
+    "description": "TenCountDescription",
+    "type": "Milestone",
+    "requirements": { "minTotalCounts": 10 },
+    "secret": false,
+    "trackProgress": true
+  },
+  {
+    "id": "hundred_correct",
+    "name": "CenturionCounterName",
+    "description": "CenturionCounterDescription",
+    "type": "Milestone",
+    "requirements": { "minCorrectCounts": 100 },
+    "secret": false,
+    "trackProgress": true
+  },
+  {
+    "id": "five_hundred_correct",
+    "name": "FiveHundredCorrectName",
+    "description": "FiveHundredCorrectDescription",
+    "type": "Milestone",
+    "requirements": { "minCorrectCounts": 500 },
+    "secret": false,
+    "trackProgress": true
+  },
+  {
+    "id": "level_10",
+    "name": "Level10Name",
+    "description": "Level10Description",
+    "type": "Milestone",
+    "requirements": { "minLevel": 10 },
+    "secret": false,
+    "trackProgress": true
+  },
+  {
+    "id": "level_20",
+    "name": "Level20Name",
+    "description": "Level20Description",
+    "type": "Milestone",
+    "requirements": { "minLevel": 20 },
+    "secret": false,
+    "trackProgress": true
+  },
+  {
+    "id": "twenty_streak",
+    "name": "TwentyStreakName",
+    "description": "TwentyStreakDescription",
+    "type": "Skill",
+    "requirements": { "minBestStreak": 50 },
+    "secret": false,
+    "trackProgress": true
+  },
+  {
+    "id": "fifty_streak",
+    "name": "FiftyStreakName",
+    "description": "FiftyStreakDescription",
+    "type": "Skill",
+    "requirements": { "minBestStreak": 150 },
+    "secret": false,
+    "trackProgress": true
+  },
+  {
+    "id": "second_wind",
+    "name": "SecondWind",
+    "description": "SecondWindDescription",
+    "type": "Skill",
+    "requirements": { "minStreakAfterError": 15 },
+    "secret": false,
+    "trackProgress": true
+  },
+  {
+    "id": "coin_collector",
+    "name": "CoinCollectorName",
+    "description": "CoinCollectorDescription",
+    "type": "Collection",
+    "requirements": { "minCoins": 1000 },
+    "secret": false,
+    "trackProgress": true
+  },
+  {
+    "id": "coin_tycoon",
+    "name": "CoinTycoonName",
+    "description": "CoinTycoonDescription",
+    "type": "Collection",
+    "requirements": { "minCoins": 5000 },
+    "secret": false,
+    "trackProgress": true
+  },
+  {
+    "id": "perfect_day",
+    "name": "PerfectDayName",
+    "description": "PerfectDayDescription",
+    "type": "Skill",
+    "requirements": { "perfectCountDay": true },
+    "secret": false,
+    "trackProgress": false
+  },
+  {
+    "id": "night_owl",
+    "name": "NightOwlName",
+    "description": "NightOwlDescription",
+    "type": "TimeBased",
+    "requirements": { "utcHourRange": [22, 3] },
+    "secret": true,
+    "trackProgress": false
+  },
+  {
+    "id": "early_bird",
+    "name": "EarlyBirdName",
+    "description": "EarlyBirdDescription",
+    "type": "TimeBased",
+    "requirements": { "utcHourRange": [5, 8] },
+    "secret": false,
+    "trackProgress": false
+  },
+  {
+    "id": "account_veteran",
+    "name": "AccountVeteranName",
+    "description": "AccountVeteranDescription",
+    "type": "TimeBased",
+    "requirements": { "minAccountAgeDays": 365 },
+    "secret": true,
+    "trackProgress": false
+  }
+]

@@ -27,6 +27,10 @@ namespace CountingBot.Services.Database
         Task<bool> GetUserRevivesAsync(ulong userId, bool removeRevive);
         Task<string> GetUserPreferredLanguageAsync(ulong userId);
         Task SetPreferredLanguageAsync(ulong userId, string language);
+        Task DeleteUserInformationAsync(ulong userId);
+        Task<List<AchievementDefinition>> GetUnlockedAchievementsAsync(ulong userId, int pageNumber = 1, int pageSize = 10);
+        Task<DateTime> GetOrUpdateCurrentDay(ulong userId);
+        Task UpdateIncorrectCountsToday(ulong userId);
     }
 
     public interface ILeaderboardService

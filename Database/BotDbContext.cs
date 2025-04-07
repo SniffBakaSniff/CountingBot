@@ -23,10 +23,20 @@ namespace CountingBot.Database
                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<Dictionary<ulong, CountingStats>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<ulong, CountingStats>());
 
+            var achievementsConverter = new ValueConverter<List<UnlockedAchievementData>, string>(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<List<UnlockedAchievementData>>(v, (JsonSerializerOptions?)null) ?? new());
+
             modelBuilder.Entity<UserInformation>()
                 .Property(ui => ui.CountingData)
                 .HasConversion(converter)
                 .HasColumnName("CountingDataJson")
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<UserInformation>()
+                .Property(ui => ui.UnlockedAchievements)
+                .HasConversion(achievementsConverter)
+                .HasColumnName("UnlockedAchievementsJson")
                 .HasColumnType("jsonb");
 
             base.OnModelCreating(modelBuilder);

@@ -1,8 +1,4 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
@@ -21,6 +17,8 @@ namespace CountingBot.Listeners
         private readonly ConcurrentDictionary<ulong, HashSet<ulong>> _cooldowns = new();
         private readonly ConcurrentDictionary<(ulong GuildId, ulong ChannelId), (ulong? messageId, int)> _count = new();
         private readonly ConcurrentDictionary<ulong, SemaphoreSlim> _channelSemaphores = new();
+        private readonly ConcurrentDictionary<ulong, HashSet<ulong>> _reviving = new();
+        public ConcurrentDictionary<ulong, HashSet<ulong>> Reviving => _reviving;
         private const int CooldownSeconds = 2;
         private DiscordEmoji? _correctEmoji;
         private DiscordEmoji? _wrongEmoji;
@@ -32,35 +30,77 @@ namespace CountingBot.Listeners
             _languageService = languageService;
         }
 
+        public void RemoveChannelFromReviving(ulong guildId, ulong channelId)
+        {
+            if (Reviving.TryGetValue(guildId, out var channels))
+            {
+                bool removed = channels.Remove(channelId);
+                if (removed)
+                {
+                    Log.Debug("Channel {ChannelId} removed from guild {GuildId}.", channelId, guildId);
+                }
+                else
+                {
+                    Log.Debug("Channel {ChannelId} was not found in guild {GuildId}'s list.", channelId, guildId);
+                }
+            }
+            else
+            {
+                Log.Debug("No entry for guild {GuildId} in Reviving dictionary.", guildId);
+            }
+        }
+
         public async Task HandleMessageDeleted(DiscordClient client, MessageDeletedEventArgs e)
         {
             ulong channelId = e.Channel.Id;
             ulong guildId = e.Guild.Id;
-            var (messageId, currentCount) = _count[(guildId, channelId)];
-
-            if (e.Message.Id == messageId)
+            try
             {
-                int baseValue = await _guildSettingsService.GetChannelBase(guildId, channelId);
-                string parsedCurrentCount = Convert.ToString(currentCount, baseValue);
-                string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(guildId) ?? "en";
+                var (messageId, currentCount) = _count[(guildId, channelId)];
 
-                var title = await _languageService.GetLocalizedStringAsync("CountMessageDeletedTitle", lang);
-                var descTemplate = await _languageService.GetLocalizedStringAsync("CountMessageDeletedDescription", lang);
-                string description = string.Format(descTemplate, parsedCurrentCount);
+                if (e.Message.Id == messageId)
+                {
+                    int baseValue = await _guildSettingsService.GetChannelBase(guildId, channelId);
+                    string parsedCurrentCount = Convert.ToString(currentCount, baseValue);
+                    string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(guildId) ?? "en";
 
-                var countResetEmbed = new DiscordEmbedBuilder()
-                    .WithTitle(title)
-                    .WithDescription(description)
-                    .WithColor(DiscordColor.Red)
-                    .Build();
+                    var title = await _languageService.GetLocalizedStringAsync("CountMessageDeletedTitle", lang);
+                    var descTemplate = await _languageService.GetLocalizedStringAsync("CountMessageDeletedDescription", lang);
+                    string description = string.Format(descTemplate, parsedCurrentCount);
 
-                await e.Channel.SendMessageAsync(embed: countResetEmbed);
+                    var countResetEmbed = new DiscordEmbedBuilder()
+                        .WithTitle(title)
+                        .WithDescription(description)
+                        .WithColor(DiscordColor.Red)
+                        .Build();
+
+                    await e.Channel.SendMessageAsync(embed: countResetEmbed);
+                }
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Log.Debug(ex, "Message received in a non-counting channel. Ignoring.");
             }
         }
 
         public async Task HandleMessage(DiscordClient client, MessageCreatedEventArgs e)
         {
             Log.Debug("Handling message from user {User} in channel {ChannelId}.", e.Author.Username, e.Channel.Id);
+
+            Log.Debug("{RevivesDictionary}", string.Join(", ", Reviving.Select(kvp => $"{kvp.Key}: {string.Join(", ", kvp.Value)}")));
+
+            if (!Reviving.ContainsKey(e.Guild.Id))
+            {
+                Reviving[e.Guild.Id] = new HashSet<ulong>();
+                Log.Debug("Initialized Reviving for Guild {GuildId}", e.Guild.Id);
+                Log.Debug("{RevivesDictionary}", string.Join(", ", Reviving.Select(kvp => $"{kvp.Key}: {string.Join(", ", kvp.Value)}")));
+            }
+
+            if (Reviving.TryGetValue(e.Guild.Id, out var channelSet) && channelSet is not null && channelSet.Contains(e.Channel.Id))
+            {
+                Log.Debug("Message received while revive message is in place");
+                return;
+            }
 
             if (e.Author.IsBot)
             {
@@ -76,7 +116,7 @@ namespace CountingBot.Listeners
                 int baseValue = await _guildSettingsService.GetChannelBase(e.Guild.Id, e.Channel.Id);
                 _count[(e.Guild.Id, e.Channel.Id)] = (null, await _guildSettingsService.GetChannelsCurrentCount(e.Guild.Id, e.Channel.Id));
 
-                await ProcessCountingMessage(e, baseValue);
+                await ProcessCountingMessage(client, e, baseValue);
             }
             else
             {
@@ -89,7 +129,7 @@ namespace CountingBot.Listeners
             return _channelSemaphores.GetOrAdd(channelId, _ => new SemaphoreSlim(1, 1));
         }
 
-        private async Task ProcessCountingMessage(MessageCreatedEventArgs e, int baseValue)
+        private async Task ProcessCountingMessage(DiscordClient client, MessageCreatedEventArgs e, int baseValue)
         {
             ulong channelId = e.Channel.Id;
             var semaphore = GetChannelSemaphore(channelId);
@@ -148,42 +188,59 @@ namespace CountingBot.Listeners
                         .Build();
 
                     var reviveResponse = new DiscordMessageBuilder().AddEmbed(reviveEmbed).AddComponents(
-                        new DiscordButtonComponent(DiscordButtonStyle.Primary, "use_revive", reviveButtonMessage)
+                        new DiscordButtonComponent(DiscordButtonStyle.Primary, "use_revive", reviveButtonMessage),
+                        new DiscordButtonComponent(
+                            DiscordButtonStyle.Secondary, "translate_DisasterStrikesTitle_DisasterStrikesMessage", 
+                            DiscordEmoji.FromName(client,":globe_with_meridians:"))
                     );
                     var reviveMsg = await e.Message.RespondAsync(reviveResponse);
+                    Reviving[e.Guild.Id].Add(e.Channel.Id);
 
-                    await Task.Delay(30000);
-
-                    try
+                    DateTime userCurrentDay = await _userInformationService.GetOrUpdateCurrentDay(e.Author.Id);
+                    if (DateTime.UtcNow.Day == userCurrentDay.Day)
                     {
-                        var checkMessage = await e.Channel.GetMessageAsync(reviveMsg.Id);
-                        
-                        if (checkMessage is not null)
+                        await _userInformationService.UpdateIncorrectCountsToday(e.Author.Id);
+                    }
+
+                    _ = Task.Run(async () =>
+                    {
+                        await Task.Delay(30000);
+
+                        try
                         {
-                            var expiredTitle = await _languageService.GetLocalizedStringAsync("ReviveRequestExpiredTitle", lang);
-                            var expiredTemplate = await _languageService.GetLocalizedStringAsync("ReviveRequestExpiredMessage", lang);
-                            var expiredEmbed = new DiscordEmbedBuilder()
-                                .WithTitle(expiredTitle)
-                                .WithDescription(expiredTemplate)
-                                .WithColor(DiscordColor.Red)
-                                .Build();
+                            var checkMessage = await e.Channel.GetMessageAsync(reviveMsg.Id);
 
-                            var builder = new DiscordMessageBuilder().AddEmbed(expiredEmbed);
-                            builder.ClearComponents();
+                            if (checkMessage is not null)
+                            {
+                                var expiredTitle = await _languageService.GetLocalizedStringAsync("ReviveRequestExpiredTitle", lang);
+                                var expiredMessage = await _languageService.GetLocalizedStringAsync("ReviveRequestExpiredMessage", lang);
+                                var expiredEmbed = new DiscordEmbedBuilder()
+                                    .WithTitle(expiredTitle)
+                                    .WithDescription(expiredMessage)
+                                    .WithColor(DiscordColor.Red)
+                                    .Build();
 
-                            await reviveMsg.ModifyAsync(builder).ConfigureAwait(false);
-                            _ = e.Message.CreateReactionAsync(_wrongEmoji!);
-                            _ = _guildSettingsService.SetChannelsCurrentCount(e.Guild.Id, e.Channel.Id, 0);
-                            _ = _userInformationService.UpdateUserCountAsync(e.Guild.Id, e.Author.Id, parsedNumber, false);
-                            _count[(e.Guild.Id, e.Channel.Id)] = (messageId, await _guildSettingsService.GetChannelsCurrentCount(e.Guild.Id, e.Channel.Id));
-                            ResetCooldowns(channelId);
+                                var builder = new DiscordMessageBuilder().AddEmbed(expiredEmbed);
+                                builder.ClearComponents();
+                                builder.AddComponents(new DiscordButtonComponent(
+                                    DiscordButtonStyle.Secondary, "translate_ReviveRequestExpiredTitle_ReviveRequestExpiredMessage", 
+                                    DiscordEmoji.FromName(client,":globe_with_meridians:")));
+
+                                await reviveMsg.ModifyAsync(builder);
+
+                                _ = e.Message.CreateReactionAsync(_wrongEmoji!);
+                                _ = _guildSettingsService.SetChannelsCurrentCount(e.Guild.Id, e.Channel.Id, 0);
+                                _ = _userInformationService.UpdateUserCountAsync(e.Guild.Id, e.Author.Id, parsedNumber, false);
+                                _count[(e.Guild.Id, e.Channel.Id)] = (messageId, await _guildSettingsService.GetChannelsCurrentCount(e.Guild.Id, e.Channel.Id));
+                                ResetCooldowns(channelId);
+                                Reviving[e.Guild.Id].Remove(e.Channel.Id);
+                            }
                         }
-                        return;
-                    }
-                    catch (DSharpPlus.Exceptions.NotFoundException)
-                    {
-                        // The message was deleted, so do nothing
-                    }
+                        catch (DSharpPlus.Exceptions.NotFoundException)
+                        {
+                            // The message was deleted, so do nothing
+                        }
+                    });
 
                     Log.Warning("Invalid count in channel {ChannelId}. Expected {Expected}, but got {ParsedNumber}. Resetting state.", channelId, currentCount + 1, parsedNumber);
                 }

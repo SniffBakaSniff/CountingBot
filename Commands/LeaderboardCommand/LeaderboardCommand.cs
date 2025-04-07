@@ -7,7 +7,6 @@ using Serilog;
 
 using CountingBot.Database.Models;
 
-// TODO: Implement Top Guilds Leaderboard
 namespace CountingBot.Features.Commands
 {
     public partial class CommandsGroup
@@ -45,6 +44,17 @@ namespace CountingBot.Features.Commands
 
             string leaderboardKey = isGlobal ? $"Global{leaderboardCategory}" : leaderboardCategory.ToString();
 
+            string key = leaderboardCategory switch
+            {
+                LeaderboardCategory.HighestCount => "LeaderboardCategoryHighestCount",
+                LeaderboardCategory.TotalCounts => "LeaderboardCategoryTotalCounts",
+                LeaderboardCategory.TotalCorrectCounts => "LeaderboardCategoryTotalCorrectCounts",
+                LeaderboardCategory.BestStreak => "LeaderboardCategoryBestStreak",
+                LeaderboardCategory.CurrentStreak => "LeaderboardCategoryCurrentStreak",
+                _ => "DefaultLeaderboardTitle"
+            };
+            string leaderboardType = isGlobal ? "Global" : "Guild";
+
             if (!leaderboards.ContainsKey(leaderboardKey))
             {
                 Log.Warning("Leaderboard data for {LeaderboardCategory} not found for guild ID: {GuildId}", leaderboardCategory, guildId);
@@ -70,7 +80,10 @@ namespace CountingBot.Features.Commands
                 .WithColor(DiscordColor.Gold);
 
             Log.Information("Sending leaderboard response for {LeaderboardCategory} (Guild ID: {GuildId})", leaderboardCategory, guildId);
-            await ctx.RespondAsync(embed);
+            
+            await ctx.RespondAsync(new DiscordMessageBuilder().AddEmbed(embed).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_{leaderboardType}{key}_Original", DiscordEmoji.FromUnicode("🌐"))
+            ));
         }
 
         private static async Task<string> BuildLeaderboardText(CommandContext ctx, List<UserInformation> leaderboardData, ulong guildId, LeaderboardCategory leaderboardCategory)

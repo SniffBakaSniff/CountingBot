@@ -2,6 +2,7 @@ using CountingBot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using CountingBot.Services;
+using DSharpPlus.Entities;
 
 namespace CountingBot.Features.Commands
 {
@@ -16,6 +17,9 @@ namespace CountingBot.Features.Commands
             string title = await _languageService.GetLocalizedStringAsync("ConfigUpdatedTitle", lang);
             string description;
 
+            string titleKey = "Null";
+            string descriptionKey;
+
             switch (setting)
             {
                 case Settings.MathEnabled:
@@ -23,11 +27,13 @@ namespace CountingBot.Features.Commands
                     {
                         await _guildSettingsService.SetMathEnabledAsync(ctx.Guild!.Id, isEnabled);
                         string descriptionTemplate = await _languageService.GetLocalizedStringAsync("ConfigMathEnabledDescription", lang);
+                        descriptionKey = "ConfigMathEnabledDescription";
                         description = string.Format(descriptionTemplate, isEnabled);
                     }
                     else
                     {
                         string errorTemplate = await _languageService.GetLocalizedStringAsync("InvalidBooleanValue", lang);
+                        descriptionKey = "InvalidBooleanValue";
                         description = string.Format(errorTemplate, value);
                     }
                     break;
@@ -35,17 +41,21 @@ namespace CountingBot.Features.Commands
                 case Settings.PreferredLanguage:
                     await _guildSettingsService.SetPreferedLanguageAsync(ctx.Guild!.Id, value);
                     string langDescriptionTemplate = await _languageService.GetLocalizedStringAsync("ConfigLanguageUpdatedDescription", lang);
+                    descriptionKey = "ConfigLanguageUpdatedDescription";
                     description = string.Format(langDescriptionTemplate, value);
                     break;
 
                 default:
                     string unknownSettingTemplate = await _languageService.GetLocalizedStringAsync("UnknownSetting", lang);
+                    descriptionKey = "UnknownSetting";
                     description = string.Format(unknownSettingTemplate, setting);
                     break;
             }
 
             var embed = MessageHelpers.GenericUpdateEmbed(title, description);
-            await ctx.RespondAsync(embed);
+            await ctx.RespondAsync(new DiscordMessageBuilder().AddEmbed(embed).AddComponents(
+                new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_{titleKey}_{descriptionKey}", DiscordEmoji.FromUnicode("🌐"))
+            ));
         }
     }
 

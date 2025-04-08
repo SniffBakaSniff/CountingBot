@@ -23,10 +23,10 @@ namespace CountingBot.Services.Database
             return await ExceptionHandler.HandleAsync(async () =>
             {
                 Log.Information("Fetching user info for user {UserId}", userId);
-                var userInformation = await GetOrCreateUserInformationAsync(userId)
-                    .ConfigureAwait(false);
+                var userInformation = await GetOrCreateUserInformationAsync(userId);
+                    
                 return userInformation;
-            }).ConfigureAwait(false);
+            });
         }
 
         public async Task UpdateUserCountAsync(ulong guildId, ulong userId, int currentCount, bool correctCount)
@@ -35,8 +35,8 @@ namespace CountingBot.Services.Database
             {
 
                 Log.Information("Updating total count for user {UserId} in guild {GuildId}", userId, guildId);
-                var userInformation = await GetOrCreateUserInformationAsync(userId)
-                    .ConfigureAwait(false);
+                var userInformation = await GetOrCreateUserInformationAsync(userId);
+                    
 
                 var stats = userInformation.GetOrCreateCountingStats(guildId);
                 var random = new Random();
@@ -86,9 +86,9 @@ namespace CountingBot.Services.Database
                     .Property(u => u.CountingData)
                     .IsModified = true;
 
-                await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+                await _dbContext.SaveChangesAsync();
                 Log.Information("Successfully updated counting stats for user {UserId} in guild {GuildId}", userId, guildId);
-            }).ConfigureAwait(false);
+            });
         }
 
         public async Task<bool> GetUserRevivesAsync(ulong userId, bool removeRevive)
@@ -97,8 +97,8 @@ namespace CountingBot.Services.Database
             {
                 Log.Information("Fetching user info for user {UserId}", userId);
                 
-                var userInformation = await GetOrCreateUserInformationAsync(userId)
-                    .ConfigureAwait(false);
+                var userInformation = await GetOrCreateUserInformationAsync(userId);
+                    
 
                 if (userInformation.Revives > 0)
                 {
@@ -109,13 +109,13 @@ namespace CountingBot.Services.Database
                         Log.Information("User {UserId} used a revive. Remaining: {Revives}", 
                                         userId, userInformation.Revives);
 
-                        await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+                        await _dbContext.SaveChangesAsync();
                     }
                     return true;
                 }
 
                 return false;
-            }).ConfigureAwait(false);
+            });
         }
 
         public async Task<string> GetUserPreferredLanguageAsync(ulong userId)
@@ -125,7 +125,7 @@ namespace CountingBot.Services.Database
 
                 Log.Information("Fetching preferred language for user {UserId}.", userId);
 
-                var userInfo = await _dbContext.UserInformation.FindAsync(userId).ConfigureAwait(false);
+                var userInfo = await _dbContext.UserInformation.FindAsync(userId);
 
                 if (userInfo is null)
                 {
@@ -135,7 +135,7 @@ namespace CountingBot.Services.Database
 
                 Log.Information("Preferred language for user {UserId} is '{PreferredLanguage}'.", userId, userInfo.PreferredLanguage);
                 return userInfo.PreferredLanguage ?? "en";
-            }).ConfigureAwait(false);
+            });
         }
         public async Task SetPreferredLanguageAsync(ulong userId, string language)
         {
@@ -144,7 +144,7 @@ namespace CountingBot.Services.Database
 
                 Log.Information("Setting preferred language for user {UserId}.", userId);
 
-                var userInfo = await _dbContext.UserInformation.FindAsync(userId).ConfigureAwait(false);
+                var userInfo = await _dbContext.UserInformation.FindAsync(userId);
 
                 if (userInfo is null)
                 {
@@ -154,9 +154,9 @@ namespace CountingBot.Services.Database
 
                 userInfo.PreferredLanguage = language;
 
-                await _dbContext.SaveChangesAsync().ConfigureAwait(false);
+                await _dbContext.SaveChangesAsync();
                 Log.Information("Successfully set preferred language for user {UserId} to '{PreferredLanguage}'.", userId, language);
-            }).ConfigureAwait(false);
+            });
         }
 
         public async Task<List<AchievementDefinition>> GetUnlockedAchievementsAsync(ulong userId, int pageNumber = 1, int pageSize = 10)
@@ -237,7 +237,6 @@ namespace CountingBot.Services.Database
             return date.AddDays(-diff).Date;
         }
 
-
         public async Task UpdateIncorrectCountsToday(ulong userId)
         {
             await ExceptionHandler.HandleAsync(async () => 
@@ -290,7 +289,7 @@ namespace CountingBot.Services.Database
             {
 
                 Log.Information("Reseting User {UserId} User Information");
-                var userInfo = await _dbContext.UserInformation.FindAsync(userId).ConfigureAwait(false);
+                var userInfo = await _dbContext.UserInformation.FindAsync(userId);
                 if (userInfo is not null)
                     _dbContext.UserInformation.Remove(userInfo);
                 await _dbContext.SaveChangesAsync();
@@ -299,9 +298,8 @@ namespace CountingBot.Services.Database
 
         private async Task<UserInformation> GetOrCreateUserInformationAsync(ulong userId)
         {
-            var userInformation = await _dbContext.UserInformation.FindAsync(userId)
-                .ConfigureAwait(false);
-
+            var userInformation = await _dbContext.UserInformation.FindAsync(userId);
+                
             if (userInformation == null)
             {
                 Log.Information("User information not found for {UserId}, creating new user entry.", userId);

@@ -3,13 +3,16 @@ using CountingBot.Helpers;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
 using Serilog;
+using CountingBot.Features.Attributes;
+using System.ComponentModel;
 
 namespace CountingBot.Features.Commands
 {
     public partial class CommandsGroup
     {
         [Command("setup")]
-        [System.ComponentModel.Description("Set up a counting channel")]
+        [Description("Set up a counting channel")]
+        [PermissionCheck("setup_command", administratorBypass: true)]
         public async Task SetupCommandAsync(CommandContext ctx, NumberSystem? type, DiscordChannel? channel)
         {
             string lang = await _userInformationService.GetUserPreferredLanguageAsync(ctx.User.Id)
@@ -19,14 +22,20 @@ namespace CountingBot.Features.Commands
             if (type is null || channel is null)
             {
                 string errorMessage = await _languageService.GetLocalizedStringAsync("SetupInvalidInput", lang);
-                await ctx.RespondAsync(MessageHelpers.GenericErrorEmbed(errorMessage));
+                var errorEmbed = MessageHelpers.GenericErrorEmbed(errorMessage);
+                await ctx.RespondAsync(new DiscordInteractionResponseBuilder().AddEmbed(errorEmbed).AsEphemeral(true).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_{null}_SetupInvalidInput", DiscordEmoji.FromUnicode("🌐"))
+                ));
                 return;
             }
 
             if (channel!.Type != DiscordChannelType.Text)
             {
                 string errorMessage = await _languageService.GetLocalizedStringAsync("SetupInvalidChannel", lang);
-                await ctx.RespondAsync(MessageHelpers.GenericErrorEmbed(errorMessage));
+                var errorEmbed = MessageHelpers.GenericErrorEmbed(errorMessage);
+                await ctx.RespondAsync(new DiscordInteractionResponseBuilder().AddEmbed(errorEmbed).AsEphemeral(true).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_{null}_SetupInvalidChannel", DiscordEmoji.FromUnicode("🌐"))
+                ));
                 return;
             }
 
@@ -40,7 +49,10 @@ namespace CountingBot.Features.Commands
             string successDescTemplate = await _languageService.GetLocalizedStringAsync("SetupSuccessDescription", lang);
             string successDesc = string.Format(successDescTemplate, channel.Mention, baseValue);
 
-            await ctx.RespondAsync(MessageHelpers.GenericSuccessEmbed(successTitle, successDesc));
+            var successEmbed = MessageHelpers.GenericSuccessEmbed(successTitle, successDesc);
+            await ctx.RespondAsync(new DiscordInteractionResponseBuilder().AddEmbed(successEmbed).AsEphemeral(false).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_SetCountUpdatedTitle_SetCountUpdatedDescription", DiscordEmoji.FromUnicode("🌐"))
+                ));
 
             Log.Information("Counting channel {ChannelId} successfully set up in {GuildId} with base {Base}.", channel.Id, ctx.Guild!.Id, baseValue);
         }

@@ -18,6 +18,7 @@ namespace CountingBot.Services.Database
         Task SetPreferedLanguageAsync(ulong guildId, string language);
         Task DeleteGuildSettings(ulong guildId);
         Task<GuildSettings> GetOrCreateGuildSettingsAsync(ulong guildId);
+        Task SetPermissionsAsync(ulong guildId, string name, bool? enabled, ulong? user, ulong? role);
     }
 
     public interface IUserInformationService

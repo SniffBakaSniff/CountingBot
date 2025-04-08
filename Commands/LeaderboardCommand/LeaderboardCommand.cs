@@ -6,6 +6,7 @@ using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using Serilog;
 
 using CountingBot.Database.Models;
+using CountingBot.Features.Attributes;
 
 namespace CountingBot.Features.Commands
 {
@@ -13,6 +14,7 @@ namespace CountingBot.Features.Commands
     {
         [Command("leaderboard")]
         [Description("Displays the leaderboard for your guild or globally.")]
+        [PermissionCheck("leaderboard_command", userBypass:true)]
         public async Task LeaderboardCommand(CommandContext ctx, Type type = Type.Guild, LeaderboardCategory leaderboardCategory = LeaderboardCategory.TotalCounts, int page = 1)
         {
             string lang = await _userInformationService.GetUserPreferredLanguageAsync(ctx.User.Id)
@@ -66,8 +68,9 @@ namespace CountingBot.Features.Commands
 
             if (leaderboardData.Count == 0)
             {
+                string noData = await _languageService.GetLocalizedStringAsync("NoLeaderboardData", lang);
                 Log.Information("No leaderboard data available for {LeaderboardCategory} (Guild ID: {GuildId})", leaderboardCategory, guildId);
-                await ctx.RespondAsync("No data available for this leaderboard.");
+                await ctx.RespondAsync(noData);
                 return;
             }
 

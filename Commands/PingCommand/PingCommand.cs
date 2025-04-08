@@ -1,3 +1,4 @@
+using CountingBot.Features.Attributes;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 
@@ -6,11 +7,12 @@ namespace CountingBot.Features.Commands
     public partial class CommandsGroup
     {
         [Command("ping")]
+        [PermissionCheck("ping_command", userBypass:true)]
         public async Task PingAsync(CommandContext ctx)
         {
             string lang = await _userInformationService.GetUserPreferredLanguageAsync(ctx.User.Id)
-                          ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(ctx.Guild!.Id)
-                          ?? "en";
+                ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(ctx.Guild!.Id)
+                ?? "en";
 
             var latency = ctx.Client.GetConnectionLatency(ctx.Guild!.Id);
             var roundedLatency = Math.Round(latency.TotalMilliseconds);
@@ -27,11 +29,9 @@ namespace CountingBot.Features.Commands
                 .WithColor(DiscordColor.Cyan)
                 .WithTimestamp(DateTime.UtcNow);
 
-            var response = new DiscordInteractionResponseBuilder()
-                .AsEphemeral()
-                .AddEmbed(embed.Build());
-
-            await ctx.RespondAsync(response);
+            await ctx.RespondAsync(new DiscordInteractionResponseBuilder().AddEmbed(embed).AsEphemeral(true).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_PingTitle_Original", DiscordEmoji.FromUnicode("🌐"))
+                ));
         }
     }
 }

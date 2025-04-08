@@ -1,12 +1,16 @@
 using DSharpPlus.Commands;
 using CountingBot.Helpers;
+using System.ComponentModel;
+using CountingBot.Features.Attributes;
+using DSharpPlus.Entities;
 
 namespace CountingBot.Features.Commands
 {
     public partial class CommandsGroup
     {
         [Command("setprefix")]
-        [System.ComponentModel.Description("Set the bot's prefix")]
+        [Description("Set the bot's prefix")]
+        [PermissionCheck("prefix_command", administratorBypass: true)]
         public async Task SetPrefixAsync(CommandContext ctx, string newPrefix)
         {
             string lang = await _userInformationService.GetUserPreferredLanguageAsync(ctx.User.Id)
@@ -34,7 +38,11 @@ namespace CountingBot.Features.Commands
             string successDescTemplate = await _languageService.GetLocalizedStringAsync("PrefixUpdatedDescription", lang);
             string successDesc = string.Format(successDescTemplate, newPrefix);
 
-            await ctx.RespondAsync(MessageHelpers.GenericSuccessEmbed(successTitle, successDesc));
+            var embed = MessageHelpers.GenericSuccessEmbed(successTitle, successDesc);
+
+            await ctx.RespondAsync(new DiscordInteractionResponseBuilder().AddEmbed(embed).AsEphemeral(false).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_PrefixUpdatedTitle_PrefixUpdatedDescription", DiscordEmoji.FromUnicode("🌐"))
+                ));
         }
     }
 }

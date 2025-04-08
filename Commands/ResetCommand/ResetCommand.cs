@@ -1,5 +1,7 @@
 using System.ComponentModel;
 using DSharpPlus.Commands;
+using DSharpPlus.Commands.ContextChecks;
+using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 
 namespace CountingBot.Features.Commands
@@ -7,6 +9,7 @@ namespace CountingBot.Features.Commands
     public partial class CommandsGroup
     {
         [Command("reset")]
+        [AllowDMUsage]
         [Description("Resets your profile information.")]
         public async Task ResetCommandAsync(CommandContext ctx)
         {
@@ -22,6 +25,7 @@ namespace CountingBot.Features.Commands
 
             var confirmButton = new DiscordButtonComponent(DiscordButtonStyle.Danger, "confirm_reset", confirmationButton);
             var cancelButton = new DiscordButtonComponent(DiscordButtonStyle.Secondary, "cancel_reset", cancelationButton);
+            var translateButton = new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_{null}_ResetConfirmationMessagel", DiscordEmoji.FromUnicode("🌐"));
 
             var embed = new DiscordEmbedBuilder
             {
@@ -31,7 +35,7 @@ namespace CountingBot.Features.Commands
 
             var responseBuilder = new DiscordInteractionResponseBuilder()
                 .AddEmbed(embed)
-                .AddComponents(confirmButton, cancelButton)
+                .AddComponents(confirmButton, cancelButton, translateButton)
                 .AsEphemeral(true);
 
             await ctx.RespondAsync(responseBuilder);

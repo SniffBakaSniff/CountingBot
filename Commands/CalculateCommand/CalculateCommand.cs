@@ -1,15 +1,14 @@
+using CountingBot.Features.Attributes;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using NCalc;
-using System;
-using System.Threading.Tasks;
-using CountingBot.Services;
 
 namespace CountingBot.Features.Commands
 {
     public partial class CommandsGroup
     {
         [Command("calculate")]
+        [PermissionCheck("calculate_command", userBypass:true)]
         public async Task EvaluateExpressionCommandAsync(CommandContext ctx, string equation)
         {
             string input = equation.Trim();
@@ -66,11 +65,13 @@ namespace CountingBot.Features.Commands
 
                 var errorEmbed = new DiscordEmbedBuilder()
                     .WithTitle(errorTitle)
-                    .WithDescription($"There was an issue evaluating the expression `{input}`.\n{errorMessage}")
+                    .WithDescription(errorMessage)
                     .WithColor(DiscordColor.Red)
                     .Build();
 
-                await ctx.RespondAsync(embed: errorEmbed);
+                await ctx.RespondAsync(new DiscordInteractionResponseBuilder().AddEmbed(errorEmbed).AsEphemeral(true).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_GenericErrorTitle_GenericErrorMessage", DiscordEmoji.FromUnicode("🌐"))
+                ));
             }
         }
     }

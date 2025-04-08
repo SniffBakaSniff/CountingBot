@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using CountingBot.Features.Attributes;
 using DSharpPlus.Commands;
 using DSharpPlus.Entities;
 using DSharpPlus.Exceptions;
@@ -9,7 +11,8 @@ namespace CountingBot.Features.Commands
     public partial class CommandsGroup
     {
         [Command("stats")]
-        [System.ComponentModel.Description("Displays the user's profile with counting statistics.")]
+        [Description("Displays the user's profile with counting statistics.")]
+        [PermissionCheck("stats_command", userBypass:true)]
         public async Task StatsCommand(CommandContext ctx)
         {
             try
@@ -72,21 +75,27 @@ namespace CountingBot.Features.Commands
                     embed.AddField(challengesLabel, userInfo.ChallengesCompleted.ToString(), true);
                     embed.AddField(achievementsLabel, userInfo.AchievementsUnlocked.ToString(), true);
                     embed.WithFooter(lastUpdatedLabel).WithTimestamp(userInfo.LastUpdated);
-                    await ctx.RespondAsync(embed: embed.Build());
+                    await ctx.RespondAsync(new DiscordInteractionResponseBuilder().AddEmbed(embed).AsEphemeral(false).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_ProfileTitle_Original", DiscordEmoji.FromUnicode("🌐"))
+                    ));
                     Log.Information("Profile sent successfully for user {UserId}", ctx.User.Id);
                 }
                 catch (KeyNotFoundException ex)
                 {
                     Log.Debug(ex, "Key {GuildId} was not foung in UserInformation.CountingData for user {UserId}", guildId, userId);
                     string noProfileMsg = await _languageService.GetLocalizedStringAsync("NoProfileFound", lang);
-                    await ctx.RespondAsync(noProfileMsg);
+                    await ctx.RespondAsync(new DiscordInteractionResponseBuilder().WithContent(noProfileMsg).AsEphemeral(true).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_{null}_NoProfileFound", DiscordEmoji.FromUnicode("🌐"))
+                    ));
                 }
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "An error occurred while fetching the profile for user {UserId}", ctx.User.Id);
                 string errorMsg = await _languageService.GetLocalizedStringAsync("GenericErrorMessage", "en");
-                await ctx.RespondAsync(errorMsg);
+                await ctx.RespondAsync(new DiscordInteractionResponseBuilder().WithContent(errorMsg).AsEphemeral(true).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_{null}_GenericErrorMessage", DiscordEmoji.FromUnicode("🌐"))
+                ));
             }
         }
     }

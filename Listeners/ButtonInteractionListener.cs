@@ -10,6 +10,7 @@ using CountingBot.Listeners;
 using SQLitePCL;
 using ExtendedNumerics.Helpers;
 using System.Text.RegularExpressions;
+using Npgsql;
 
 namespace CountingBot.Listeners
 {
@@ -214,10 +215,15 @@ namespace CountingBot.Listeners
                                     ?? "en";
 
             string? embedDescription = null;
+            string? embedFields = null;
 
             if (e.Message.Embeds.Count > 0)
             {
                 embedDescription = e.Message.Embeds[0].Description;
+            }
+            if (e.Message.Embeds[0].Fields is not null)
+            {
+                embedFields = string.Join("\n", e.Message.Embeds[0].Fields!.Select(f => $"**{f.Name}:** {f.Value}"));
             }
 
             string[] args = e.Id.Substring("translate_".Length).Split('_');
@@ -247,6 +253,7 @@ namespace CountingBot.Listeners
                 if (messageKey!.ToString() is "Original")
                 {
                     embed.WithDescription(embedDescription!);
+                    embed.WithDescription(embedFields!);
                 }
                 
                 if (footerKey is not null)

@@ -159,7 +159,11 @@ namespace CountingBot.Listeners
                         .WithDescription(messageText)
                         .WithColor(DiscordColor.Orange)
                         .Build();
-                    var warningMessage = await e.Message.RespondAsync(embed);
+
+                    var response = new DiscordMessageBuilder().AddEmbed(embed).AddComponents(
+                        new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_SlowdownTitle_SlowdownMessage", DiscordEmoji.FromUnicode("🌐"))
+                    );
+                    var warningMessage = await e.Message.RespondAsync(response);
                     _ = DeleteMessagesAsync(e.Message, warningMessage, 2500);
                     return;
                 }
@@ -262,26 +266,30 @@ namespace CountingBot.Listeners
 
                 if (containsMath)
                 {
-                    if (!await _guildSettingsService.GetMathEnabledAsync(guildId))
-                    {
-                        string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(guildId) ?? "en";
-                        var mathDisabledTitle = await _languageService.GetLocalizedStringAsync("MathDisabledTitle", lang);
-                        var mathDisabledDesc = await _languageService.GetLocalizedStringAsync("MathDisabledDescription", lang);
-                        var warningEmbed = new DiscordEmbedBuilder()
-                            .WithTitle(mathDisabledTitle)
-                            .WithDescription(mathDisabledDesc)
-                            .WithColor(DiscordColor.Orange)
-                            .Build();
-
-                        await message.RespondAsync(warningEmbed);
-                        return (false, result);
-                    }
-
                     var expression = new Expression(input);
                     var evaluation = expression.Evaluate();
 
                     if (evaluation is int intResult)
                     {
+                        if (!await _guildSettingsService.GetMathEnabledAsync(guildId))
+                        {
+                            string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(guildId) ?? "en";
+                            var mathDisabledTitle = await _languageService.GetLocalizedStringAsync("MathDisabledTitle", lang);
+                            var mathDisabledDesc = await _languageService.GetLocalizedStringAsync("MathDisabledDescription", lang);
+                            var warningEmbed = new DiscordEmbedBuilder()
+                                .WithTitle(mathDisabledTitle)
+                                .WithDescription(mathDisabledDesc)
+                                .WithColor(DiscordColor.Orange)
+                                .Build();
+
+                            var response = new DiscordMessageBuilder().AddEmbed(warningEmbed).AddComponents(
+                                new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_MathDisabledTitle_MathDisabledDescription", DiscordEmoji.FromUnicode("🌐"))
+                            );
+
+                            await message.RespondAsync(response);
+                            return (false, result);
+                        }
+
                         result = intResult;
                         return (true, result);
                     }
@@ -295,14 +303,18 @@ namespace CountingBot.Listeners
 
                         string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(guildId) ?? "en";
                         var invalidResultTitle = await _languageService.GetLocalizedStringAsync("InvalidResultTitle", lang);
-                        var invalidResultTemplate = await _languageService.GetLocalizedStringAsync("InvalidResultDescription", lang);
+                        var invalidResultMessage = await _languageService.GetLocalizedStringAsync("InvalidResultDescription", lang);
                         var warningEmbed = new DiscordEmbedBuilder()
                             .WithTitle(invalidResultTitle)
-                            .WithDescription(string.Format(invalidResultTemplate, message.Content, doubleResult))
+                            .WithDescription(string.Format(invalidResultMessage, message.Content, doubleResult))
                             .WithColor(DiscordColor.Orange)
                             .Build();
 
-                        await message.Channel!.SendMessageAsync(embed: warningEmbed);
+                        var response = new DiscordMessageBuilder().AddEmbed(warningEmbed).AddComponents(
+                            new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_InvalidResultTitle_InvalidResultDescription", DiscordEmoji.FromUnicode("🌐"))
+                        );
+
+                        await message.RespondAsync(response);
                         return (false, 0);
                     }
                 }
@@ -314,7 +326,7 @@ namespace CountingBot.Listeners
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Failed to evaluate expression '{Expression}' with base {Base}. Error: {Error}", input, baseValue, ex.Message);
+                Log.Debug(ex, "Failed to evaluate expression '{Expression}' with base {Base}. Error: {Error}", input, baseValue, ex.Message);
             }
 
             return (false, result);

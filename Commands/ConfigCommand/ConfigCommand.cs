@@ -1,14 +1,15 @@
 using CountingBot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
-using CountingBot.Services;
 using DSharpPlus.Entities;
+using CountingBot.Features.Attributes;
 
 namespace CountingBot.Features.Commands
 {
     public partial class CommandsGroup
     {
         [Command("config")]
+        [PermissionCheck("config_command")]
         public async Task ConfigCommandAsync(CommandContext ctx, Settings setting, string value)
         {
             string lang = await _userInformationService.GetUserPreferredLanguageAsync(ctx.User.Id)

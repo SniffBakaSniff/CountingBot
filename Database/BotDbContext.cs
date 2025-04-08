@@ -27,6 +27,10 @@ namespace CountingBot.Database
                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                 v => JsonSerializer.Deserialize<List<UnlockedAchievementData>>(v, (JsonSerializerOptions?)null) ?? new());
 
+            var permissionConverter = new ValueConverter<Dictionary<string, CommandPermissionData>, string>(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<Dictionary<string, CommandPermissionData>>(v, (JsonSerializerOptions?)null) ?? new());
+
             modelBuilder.Entity<UserInformation>()
                 .Property(ui => ui.CountingData)
                 .HasConversion(converter)
@@ -37,6 +41,12 @@ namespace CountingBot.Database
                 .Property(ui => ui.UnlockedAchievements)
                 .HasConversion(achievementsConverter)
                 .HasColumnName("UnlockedAchievementsJson")
+                .HasColumnType("jsonb");
+
+            modelBuilder.Entity<GuildSettings>()
+                .Property(g => g.CommandPermissions)
+                .HasConversion(permissionConverter)
+                .HasColumnName("CommandPermissions")
                 .HasColumnType("jsonb");
 
             base.OnModelCreating(modelBuilder);

@@ -1,3 +1,4 @@
+using CountingBot.Features.Attributes;
 using CountingBot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
@@ -37,7 +38,7 @@ namespace CountingBot.Features.Commands
                 string errorMessage = await _languageService.GetLocalizedStringAsync("GenericErrorMessage", lang);
                 string descriptionKey = "GenericErrorMessage";
                 var errorEmbed = MessageHelpers.GenericErrorEmbed(errorTitle, errorMessage);
-                await ctx.RespondAsync(new DiscordMessageBuilder().AddEmbed(errorEmbed).AddComponents(
+                await ctx.RespondAsync(new DiscordInteractionResponseBuilder().AddEmbed(errorEmbed).AsEphemeral(true).AddComponents(
                     new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_{titleKey}_{descriptionKey}", DiscordEmoji.FromUnicode("🌐"))
                 ));
             }

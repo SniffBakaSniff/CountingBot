@@ -180,5 +180,13 @@
     "SecretAchievementDescription": "?????????????",
 
     "AchievementsTitle": "{0}'s Achievements",
-    "AchievementsDescription": "Here are all of your unlocked achievements. {0}/{1}"
+    "AchievementsDescription": "Here are all of your unlocked achievements. {0}/{1}",
+
+    "CommandPermissionsUpdatedTitle": "✅ Command Permissions Updated",
+    "CommandPermissionsUpdatedDescription": "Permissions for command **{0}** were successfully updated.",
+    "CommandPermissionsEnabledField": "Enabled",
+    "CommandPermissionsAllowedUserField": "Allowed User",
+    "CommandPermissionsAllowedRoleField": "Allowed Role",
+
+    "NoLeaderboardData": "No leaderboard data available."
 }

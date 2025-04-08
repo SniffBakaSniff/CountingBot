@@ -13,6 +13,7 @@ using CountingBot.Services.Database;
 using CountingBot.Features.Commands;
 using CountingBot.Database;
 using Microsoft.EntityFrameworkCore;
+using CountingBot.Features.Attributes;
 
 
 namespace CountingBot
@@ -130,7 +131,9 @@ namespace CountingBot
                         extension.AddProcessors(textCommandProcessor);
                         extension.AddProcessor(slashCommandProcessor);
 
-                        extension.CommandErrored += EventHandlers.CommandErrored;
+                        extension.AddCheck<PermissionCheck>();
+
+                        //extension.CommandErrored += EventHandlers.CommandErrored;
 
                     },
                     new CommandsConfiguration()
@@ -146,7 +149,6 @@ namespace CountingBot
                     logging.ClearProviders();
                     logging.AddSerilog();
                 });
-
 
                 client = builder.Build();
 

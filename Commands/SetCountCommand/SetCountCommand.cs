@@ -1,12 +1,11 @@
-using System;
-using System.Threading.Tasks;
 using System.ComponentModel;
 using CountingBot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
-using DSharpPlus.Entities;
 using Serilog;
 using CountingBot.Services;
+using CountingBot.Features.Attributes;
+using DSharpPlus.Entities;
 
 namespace CountingBot.Features.Commands
 {
@@ -14,6 +13,7 @@ namespace CountingBot.Features.Commands
     {
         [Command("setcount")]
         [Description("Sets the current count for the channel.")]
+        [PermissionCheck("setcount_command", administratorBypass: true)]
         public async Task SetCountCommand(
             CommandContext ctx,
             [Description("The channel to change the count for.")]
@@ -34,7 +34,9 @@ namespace CountingBot.Features.Commands
                 string invalidNumberTitle = await _languageService.GetLocalizedStringAsync("InvalidNumberTitle", lang);
                 string invalidNumberMsg = await _languageService.GetLocalizedStringAsync("InvalidNumberMessage", lang);
                 var errorEmbed = MessageHelpers.GenericErrorEmbed(invalidNumberTitle, invalidNumberMsg); 
-                await ctx.RespondAsync(embed: errorEmbed);
+                await ctx.RespondAsync(new DiscordInteractionResponseBuilder().AddEmbed(errorEmbed).AsEphemeral(true).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_InvalidNumberTitle_InvalidNumberMessage", DiscordEmoji.FromUnicode("🌐"))
+                ));
                 return;
             }
 
@@ -47,16 +49,21 @@ namespace CountingBot.Features.Commands
                     string notCountingChannelTitle = await _languageService.GetLocalizedStringAsync("InvalidChannel", lang);
                     string notCountingChannelMsg = await _languageService.GetLocalizedStringAsync("NotCountingChannel", lang);
                     var errorEmbed = MessageHelpers.GenericErrorEmbed(notCountingChannelTitle, notCountingChannelMsg);
-                    await ctx.RespondAsync(embed: errorEmbed);
+                    await ctx.RespondAsync(new DiscordInteractionResponseBuilder().AddEmbed(errorEmbed).AsEphemeral(true).AddComponents(
+                        new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_InvalidChannel_NotCountingChannel", DiscordEmoji.FromUnicode("🌐"))
+                    ));
                     return;
                 }
 
                 await _guildSettingsService.SetChannelsCurrentCount(ctx.Guild!.Id, channel, newCount);
 
-                string countUpdatedMsg = await _languageService.GetLocalizedStringAsync("CountUpdated", lang);
-                var successEmbed = MessageHelpers.GenericSuccessEmbed("Count Updated", string.Format(countUpdatedMsg, newCount));
+                string countUpdatedTitle = await _languageService.GetLocalizedStringAsync("SetCountUpdatedTitle", lang);
+                string countUpdatedMsg = await _languageService.GetLocalizedStringAsync("SetCountUpdatedDescription", lang);
+                var successEmbed = MessageHelpers.GenericSuccessEmbed(countUpdatedTitle, string.Format(countUpdatedMsg, newCount));
 
-                await ctx.RespondAsync(embed: successEmbed);
+                await ctx.RespondAsync(new DiscordInteractionResponseBuilder().AddEmbed(successEmbed).AsEphemeral(false).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_SetCountUpdatedTitle_SetCountUpdatedDescription", DiscordEmoji.FromUnicode("🌐"))
+                ));
 
                 Log.Information("Count successfully updated to {NewCount} for channel {ChannelId} by {User}.", newCount, channel, ctx.User.Username);
             }
@@ -64,9 +71,12 @@ namespace CountingBot.Features.Commands
             {
                 Log.Error(ex, "An error occurred while updating the count for channel {ChannelId} in guild {GuildId}.", channel, ctx.Guild?.Id);
 
+                string errorTitle = await _languageService.GetLocalizedStringAsync("GenericErrorTitle", lang);
                 string errorMsg = await _languageService.GetLocalizedStringAsync("GenericErrorMessage", lang);
-                var errorEmbed = MessageHelpers.GenericErrorEmbed("Error", errorMsg);
-                await ctx.RespondAsync(embed: errorEmbed);
+                var errorEmbed = MessageHelpers.GenericErrorEmbed(errorTitle, errorMsg);
+                await ctx.RespondAsync(new DiscordInteractionResponseBuilder().AddEmbed(errorEmbed).AsEphemeral(true).AddComponents(
+                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_GenericErrorTitle_GenericErrorMessage", DiscordEmoji.FromUnicode("🌐"))
+                ));
             }
         }
     }

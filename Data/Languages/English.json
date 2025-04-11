@@ -1,0 +1,327 @@
+{
+    "PingTitle": "🏓 Pong!",
+
+    "InvalidChannel": "Invalid Channel",
+
+    "PrefixEmptyError": "Prefix cannot be empty.",
+
+    "ProfileLevel": "Level",
+    "ProfileCoins": "Coins",
+    "ProfileTitle": "{0}'s Profile",
+    "StatsProfileTitle": "{0}'s Statistics",
+
+    "GenericErrorTitle": "Error",
+    "GenericSuccessTitle": "Success",
+
+    "DeveloperOnlyTitle": "Developer Only",
+    "DeveloperOnlyMessage": "This command is only available to bot developers.",
+
+    "PingLatencyField": "Latency",
+    "PingUptimeField": "Bot Uptime",
+
+    "NoProfileFound": "No profile found for this user.",
+
+    "ResetConfirmationMessage": "⚠️ Are you sure you want to reset your profile? This cannot be undone.",
+    "ResetCancelationButton": "Cancel",
+    "ResetCanceledTitle": "Reset Canceled",
+    "ResetCanceledMessage": "Your profile reset has been canceled.",
+    "ResetConfirmationButton": "Confirm",
+    "ResetConfirmedTitle": "Profile Reset",
+    "ResetConfirmedMessage": "Your profile has been successfully reset.",
+
+    "PrefixTooLongError": "Prefix cannot be longer than 3 characters.",
+    "PrefixUpdatedTitle": "Prefix Updated",
+    "PrefixUpdatedDescription": "Prefix successfully updated to `{0}`.",
+
+    "GenericErrorMessage": "An error occurred. Please try again.",
+    "GenericSuccessMessage": "Operation completed successfully.",
+
+    "NotCountingChannel": "The selected channel is not a counting channel.",
+    "NoRevivesLeft": "You have no revives left!",
+    "NoRevivesLeftMessage": "You have no revives left!",
+
+    "InvalidNumberTitle": "Invalid Number",
+    "InvalidNumberMessage": "The number provided is invalid.",
+
+    "OriginalMessageNotFound": "The original message could not be found.",
+
+    "ReviveButtonMessage": "⚡ Revive the Count!",
+
+    "SetCountInvalidNumber": "The number cannot be negative.",
+    "SetCountUpdatedTitle": "Count Updated",
+    "SetCountUpdatedDescription": "The count for the selected channel has been set to **{0}**.",
+
+    "SlowdownTitle": "Slow Down!",
+    "SlowdownMessage": "Please wait before sending another message.",
+
+    "ProfileExperience": "Experience Points",
+    "ProfileAchievements": "Achievements",
+    "ProfileChallenges": "Challenges Completed",
+    "ProfileRevives": "Revives",
+    "ProfileLastUpdated": "Profile last updated",
+    "ProfileBestStreak": "Best Streak",
+    "ProfileCurrentStreak": "Current Streak",
+    "ProfileHighestCount": "Highest Count",
+    "ProfileTotalCounts": "Total Counts",
+    "ProfileCorrectCounts": "Correct Counts",
+    "ProfileIncorrectCounts": "Incorrect Counts",
+    "ProfileStatsHeader": "Counting Statistics",
+    "ProfileAchievementsHeader": "Achievements",
+    "ProfileBio": "User Bio",
+    "ProfileStatsLabel": "Stats",
+    "ProfileProgressHeader": "Progress & Achievements",
+
+    "UnknownSetting": "The setting '{0}' is not recognized.",
+
+    "InvalidBooleanValue": "The value '{0}' is not valid. Please use 'true' or 'false'.",
+
+    "MathDisabledTitle": "⚠️ Math is Disabled!",
+    "MathDisabledDescription": "This guild doesn't allow math expressions for counting. Keep it simple—just type the number!",
+    "MathResultTitle": "🧮 Math Result",
+    "MathResultFooter": "Requested by {0}",
+    "MathResultDescription": "**Expression:**\n`{0}`\n**Result:**\n**{1}**",
+
+    "InvalidResultTitle": "⚠️ Invalid Result!",
+    "InvalidResultDescription": "The expression `{0} = {1}` does not evaluate to a whole number! Only whole numbers are allowed.",
+
+    "CountMessageDeletedTitle": "Count Message Deleted",
+    "CountMessageDeletedDescription": "The count message was deleted. The current count is {0}.",
+
+    "CountRevivedTitle": "✨ Count Revived!",
+    "CountRevivedDescription": "The count is back! It's time to continue the challenge, the next number to count is **{0}**.",
+
+    "DisasterStrikesTitle": "Disaster Strikes! ⚠️",
+    "DisasterStrikesMessage": "Oh no! The count was messed up! ⏳ Time is running out—will someone step up and use a revive?",
+
+    "ReviveRequestExpiredTitle": "⏳ Revive Request Expired!",
+    "ReviveRequestExpiredMessage": "Nobody stepped up in time—so the count has been reset. Better luck next time!",
+
+    "ConfigUpdatedTitle": "Configuration Updated",
+    "ConfigUpdatedDescription": "{0} : {1}",
+    "ConfigMathEnabledDescription": "Math expressions have been {0}.",
+    "ConfigLanguageUpdatedDescription": "Preferred language has been updated to **{0}**.",
+
+    "ConfigViewTitle": "Current Configuration",
+    "ConfigMathEnabledLabel": "Math Expressions",
+    "ConfigLanguageLabel": "Preferred Language",
+    "ConfigPrefixLabel": "Command Prefix",
+    "ConfigMathSettingName": "Math Expressions",
+    "ConfigLanguageSettingName": "Preferred Language",
+    "ConfigPrefixSettingName": "Command Prefix",
+    "Enabled": "Enabled",
+    "Disabled": "Disabled",
+
+    "SetupCompleteTitle": "Setup Complete",
+    "SetupCompleteDescription": "The counting channel has been set to {0} with a base of {1}.",
+    "SetupSuccessTitle": "Setup Successful",
+    "SetupSuccessDescription": "The counting channel has been set to {0} with a base of {1}.",
+    "SetupInvalidInput": "You must provide valid input for setup.",
+    "SetupInvalidInputTitle": "Invalid Input",
+    "SetupInvalidInputDescription": "You must provide both a number system and a channel.",
+    "SetupInvalidChannelTitle": "Invalid Channel",
+    "SetupInvalidChannelDescription": "The specified channel must be a text channel.",
+
+    "GuildLeaderboardTitle": "📋 Top Counters in {0}",
+    "GlobalCountLeaderboardTitle": "🏆 Top Counting Guilds - {0}",
+    "OverallLeaderboardTitle": "🏆 Top 10 Guilds - Highest Count",
+    "GuildLeaderboardCategoryBestStreak": "🏆 Top Counters - Longest Streak",
+    "GuildLeaderboardCategoryCurrentStreak": "🏆 Top Counters - Current Streak",
+    "GuildLeaderboardCategoryHighestCount": "🏆 Top Counters - Highest Counts",
+    "GuildLeaderboardCategoryTotalCounts": "🏆 Top Counters - Total Counts",
+    "GuildLeaderboardCategoryTotalCorrectCounts": "🏆 Top Counters - Correct Counts",
+    "GlobalLeaderboardCategoryBestStreak": "🏆 Global Leaders - Longest Streak",
+    "GlobalLeaderboardCategoryCurrentStreak": "🏆 Global Leaders - Current Streak",
+    "GlobalLeaderboardCategoryHighestCount": "🏆 Global Leaders - Highest Counts",
+    "GlobalLeaderboardCategoryTotalCounts": "🏆 Global Leaders - Total Counts",
+    "GlobalLeaderboardCategoryTotalCorrectCounts": "🏆 Global Leaders - Correct Counts",
+
+    "FirstCountName": "First Count",
+    "FirstCountDescription": "Make your very first count.",
+
+    "CenturionCounterName": "Centurion Counter",
+    "CenturionCounterDescription": "Reach 100 correct counts.",
+
+    "HotStreakName": "Hot Streak",
+    "HotStreakDescription": "Reach a streak of 10.",
+
+    "GettingStrongerName": "Getting Stronger",
+    "GettingStrongerDescription": "Reach level 5.",
+
+    "CoinCollectorName": "Coin Collector",
+    "CoinCollectorDescription": "Earn 1000 coins.",
+
+    "AchievementMasterName": "Achievement Master",
+    "AchievementMasterDescription": "Complete 10 challenges.",
+
+    "TenCountName": "Counting Novice",
+    "TenCountDescription": "Count atleast 10 times.",
+
+    "FiveHundredCorrectName": "Precision Pro",
+    "FiveHundredCorrectDescription": "Count correctly 500 times.",
+
+    "Level10Name": "Leveling Up",
+    "Level10Description": "Reach level 10.",
+
+    "Level20Name": "Elite Counter",
+    "Level20Description": "Reach level 20.",
+
+    "TwentyStreakName": "On Fire",
+    "TwentyStreakDescription": "Achieve a 50-count streak.",
+
+    "FiftyStreakName": "Machine Mode",
+    "FiftyStreakDescription": "Achieve a 150-count streak.",
+
+    "SecondWind": "Second Wind",
+    "SecondWindDescription": "Get a streak 15 or higher after losing your streak.",
+
+    "NightOwlName": "Night Owl",
+    "NightOwlDescription": "Count between 12:00 AM and 6:00 AM UTC.",
+
+    "EarlyBirdName": "Early Bird",
+    "EarlyBirdDescription": "Count between 5:00 AM and 8:00 AM UTC.",
+
+    "AccountVeteranName": "Veteran Counter",
+    "AccountVeteranDescription": "Have counted for a minimum of 1 year.",
+
+    "CoinTycoonName": "Coin Tycoon",
+    "CoinTycoonDescription": "Earn 5000 coins.",
+
+    "PerfectDayName": "Perfect Day",
+    "PerfectDayDescription": "Count correctly for an entire day without a single mistake.",
+
+    "WeeklyStreakerName": "Challenge Streaker",
+    "WeeklyStreakerDescription": "Complete a weekly challenge 3 weeks in a row.",
+
+    "ChallengeChampionName": "Challenge Champion",
+    "ChallengeChampionDescription": "Complete 25 challenges.",
+
+    "SecretAchievement": "?????????",
+    "SecretAchievementDescription": "?????????????",
+
+    "AchievementsTitle": "{0}'s Achievements",
+    "AchievementsDescription": "Here are all of your unlocked achievements. {0}/{1}",
+
+    "CommandPermissionsUpdatedTitle": "✅ Command Permissions Updated",
+    "CommandPermissionsUpdatedDescription": "Permissions for command **{0}** were successfully updated.",
+    "CommandPermissionsEnabledField": "Enabled",
+    "CommandPermissionsAllowedUserField": "Allowed User",
+    "CommandPermissionsAllowedRoleField": "Allowed Role",
+
+    "CommandBlacklistUpdatedTitle": "⛔ Command Blacklist Updated",
+    "CommandBlacklistUpdatedDescription": "Blacklist for command **{0}** has been updated.",
+    "CommandBlacklistedUserField": "Blacklisted User",
+    "CommandBlacklistedRoleField": "Blacklisted Role",
+
+    "CommandPermissionsViewTitle": "🔍 Command Permissions",
+    "CommandPermissionsViewDescription": "Current permission settings for command **{0}**",
+    "CommandPermissionsEnabledStatus": "Status",
+    "CommandPermissionsAllowedUsers": "Allowed Users",
+    "CommandPermissionsAllowedRoles": "Allowed Roles",
+    "CommandPermissionsBlacklistedUsers": "Blacklisted Users",
+    "CommandPermissionsBlacklistedRoles": "Blacklisted Roles",
+    "CommandPermissionsNone": "None",
+
+    "CommandPermissionRemovedTitle": "✅ Permission Entry Removed",
+    "CommandPermissionRemovedDescription": "Successfully removed permission entry for command **{0}**",
+    "CommandPermissionRemovedUserField": "Removed User",
+    "CommandPermissionRemovedRoleField": "Removed Role",
+
+    "CommandBlacklistRemovedTitle": "✅ Blacklist Entry Removed",
+    "CommandBlacklistRemovedDescription": "Successfully removed blacklist entry for command **{0}**",
+    "CommandBlacklistRemovedUserField": "Removed User",
+    "CommandBlacklistRemovedRoleField": "Removed Role",
+
+    "UserBlacklistedTitle": "Access Denied",
+    "UserBlacklistedMessage": "You are blacklisted from using this command.",
+    "RoleBlacklistedTitle": "Access Denied",
+    "RoleBlacklistedMessage": "One of your roles is blacklisted from using this command.",
+    "NoPermissionTitle": "Access Denied",
+    "NoPermissionMessage": "You do not have permission to run this command.",
+
+    "HelpGeneralTitle": "Bot Help",
+    "HelpGeneralDescription": "Welcome to the Counting Bot! This bot allows you to set up counting channels in your server.",
+    "HelpGeneralFeaturesTitle": "Features",
+    "HelpGeneralFeaturesContent": "• Multiple counting channels with different number systems\n• User profiles and statistics tracking\n• Leaderboards (server and global)\n• Achievements system\n• Customizable permissions\n• Multiple language support",
+    "HelpGeneralSupportTitle": "Support",
+    "HelpGeneralSupportContent": "If you need help, join our support server or check out our documentation.",
+
+    "HelpSetupTitle": "Setup Guide",
+    "HelpSetupDescription": "Follow these steps to set up the counting bot in your server:",
+    "HelpSetupStep1Title": "Step 1: Create a Counting Channel",
+    "HelpSetupStep1Content": "Use the `/setup` command to set up a counting channel:\n```\n/setup [channel] [number system]\n```\nExample: `/setup #counting decimal`",
+    "HelpSetupStep2Title": "Step 2: Configure Settings",
+    "HelpSetupStep2Content": "Use the `/config` command to configure bot settings:\n```\n/config [setting] [value]\n```\nExample: `/config MathEnabled true`",
+    "HelpSetupStep3Title": "Step 3: Set Permissions (Optional)",
+    "HelpSetupStep3Content": "Use the `/set_permission` command to control who can use specific commands:\n```\n/set_permission [command] [user/role]\n```\nExample: `/set_permission setup_command @Moderator`",
+    "HelpSetupStep4Title": "Step 4: Start Counting!",
+    "HelpSetupStep4Content": "Your counting channel is now ready! Start by typing `1` in the channel.",
+
+    "HelpCommandsTitle": "Commands List",
+    "HelpCommandsDescription": "Here are the available commands:",
+    "HelpUserCommandsTitle": "User Commands",
+    "HelpUserCommandsContent": "`/ping` - Check the bot's response time and uptime\n`/profile` - View your profile statistics\n`/stats` - View your detailed counting statistics\n`/achievements` - View your unlocked achievements\n`/leaderboard` - View the counting leaderboard\n`/calculate` - Evaluate a mathematical expression\n`/language` - Set your preferred language\n`/reset` - Reset your profile information\n`/help` - Display this help information",
+    "HelpAdminCommandsTitle": "Admin Commands",
+    "HelpAdminCommandsContent": "`/setup` - Set up a counting channel\n`/config` - Configure bot settings\n`/setprefix` - Set the bot's prefix\n`/setcount` - Set the current count for a channel",
+    "HelpPermissionCommandsTitle": "Permission Commands",
+    "HelpPermissionCommandsContent": "`/set_permission` - Allow users/roles to use commands\n`/get_permission` - View command permissions\n`/remove_permission` - Remove allowed users/roles\n`/set_blacklist` - Blacklist users/roles from commands\n`/remove_blacklist` - Remove blacklisted users/roles",
+
+    "HelpPermissionsTitle": "Permissions Guide",
+    "HelpPermissionsDescription": "The bot uses a permission system to control who can use specific commands. Here's how it works:",
+    "HelpPermissionsBasicsTitle": "Permission Basics",
+    "HelpPermissionsBasicsContent": "• By default, most commands can be used by anyone\n• Admin commands require administrator permissions\n• You can restrict commands to specific users or roles\n• You can blacklist users or roles from using commands",
+    "HelpPermissionsSettingTitle": "Setting Permissions",
+    "HelpPermissionsSettingContent": "Use `/set_permission` to allow specific users or roles to use a command:\n```\n/set_permission [command] [user/role]\n```\nOnce permissions are set, only specified users/roles can use the command.",
+    "HelpPermissionsBlacklistTitle": "Blacklisting",
+    "HelpPermissionsBlacklistContent": "Use `/set_blacklist` to prevent specific users or roles from using a command:\n```\n/set_blacklist [command] [user/role]\n```\nBlacklisted users/roles cannot use the command, even if they have permission.",
+    "HelpPermissionsManagingTitle": "Managing Permissions",
+    "HelpPermissionsManagingContent": "• `/get_permission` - View current permissions for a command\n• `/remove_permission` - Remove a user/role from allowed list\n• `/remove_blacklist` - Remove a user/role from blacklist",
+
+    "HelpCountingTitle": "Counting Guide",
+    "HelpCountingDescription": "Learn how counting works and the rules to follow:",
+    "HelpCountingRulesTitle": "Basic Rules",
+    "HelpCountingRulesContent": "• Users take turns counting up from 1\n• Each number must be exactly one higher than the previous\n• The same user can count multiple times in a row\n• If someone makes a mistake, counting restarts from 1\n• You can use revives to save the count after a mistake",
+    "HelpCountingSystemsTitle": "Number Systems",
+    "HelpCountingSystemsContent": "The bot supports different number systems:\n• **Decimal** - Regular numbers (1, 2, 3...)\n• **Binary** - Base-2 (1, 10, 11, 100...)\n• **Hexadecimal** - Base-16 (1, 2... 9, A, B, C, D, E, F, 10...)\n• **Roman** - Roman numerals (I, II, III, IV...)",
+    "HelpCountingMathTitle": "Math Expressions",
+    "HelpCountingMathContent": "If enabled, you can use math expressions when counting:\n• `2+2` (equals 4)\n• `3*2` (equals 6)\n• `10-5` (equals 5)\nThe result must equal the next number in the sequence.",
+    "HelpCountingRevivesTitle": "Revives",
+    "HelpCountingRevivesContent": "When someone makes a mistake, you can use a revive to continue counting:\n• Each user has up to 3 revives\n• Revives are earned through regular counting\n• Use a revive by clicking the revive button that appears after a mistake",
+
+    "NoLeaderboardData": "No leaderboard data available.",
+    "HelpComponentErrorMessage": "An error occurred while processing your selection.",
+
+    "HelpSectionSelectorLabel": "Select Help Section",
+    "HelpSectionGeneralOption": "General Information",
+    "HelpSectionGeneralDescription": "General bot information",
+    "HelpSectionSetupOption": "Setup Guide",
+    "HelpSectionSetupDescription": "How to set up the bot",
+    "HelpSectionCommandsOption": "Commands List",
+    "HelpSectionCommandsDescription": "List of available commands",
+    "HelpSectionPermissionsOption": "Permissions",
+    "HelpSectionPermissionsDescription": "How to manage command permissions",
+    "HelpSectionCountingOption": "Counting Guide",
+    "HelpSectionCountingDescription": "How counting works",
+
+    "ReportSuccessMessage": "Your report has been successfully submitted.",
+    "ReportFailureMessage": "Failed to submit your report. Please try again later.",
+
+    "BugReportTitle": "Bug Report",
+    "BugReportUserField": "Reported ",
+    "BugReportDescriptionField": "Description",
+    "BugReportDateField": "Date Reported",
+    "BugReportFixedButton": "Mark as Fixed",
+    "BugReportFixedTitle": "Bug Fixed",
+    "BugReportFixedDescription": "This bug has been marked as fixed and the report has been removed.",
+
+    "SuggestionCommandTitle": "Suggestion",
+    "SuggestionCommandDescription": "Thank you for your suggestion. Our team will consider your suggestion.",
+    "SuggestionCommandUserField": "Suggested By",
+    "SuggestionCommandDescriptionField": "Description",
+    "SuggestionCommandDateField": "Date Suggested",
+    "SuggestionCommandImplementedButton": "Mark as Implemented",
+    "SuggestionCommandImplementedTitle": "Suggestion Implemented",
+    "SuggestionCommandImplementedDescription": "This suggestion has been marked as implemented and the report has been removed.",
+    
+    "HighscoreTitle": "🏆 Highscore",
+    "HighscoreDescription": "The current highscore for this channel is {0}!"
+}

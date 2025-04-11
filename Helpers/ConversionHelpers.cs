@@ -1,7 +1,7 @@
-﻿using DSharpPlus.Commands;
-using DSharpPlus.Entities;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
+using DSharpPlus.Commands;
+using DSharpPlus.Entities;
 
 namespace CountingBot.Helpers
 {
@@ -12,7 +12,7 @@ namespace CountingBot.Helpers
     {
         public enum Type
         {
-            Message
+            Message,
         }
 
         public class Exception : System.Exception
@@ -21,8 +21,11 @@ namespace CountingBot.Helpers
             public string Argument;
             public Type Type;
 
-            public Exception(string? message, string argument, Type type) {
-                Message = message; Argument = argument; Type = type;
+            public Exception(string? message, string argument, Type type)
+            {
+                Message = message;
+                Argument = argument;
+                Type = type;
             }
 
             public DiscordEmbed ToEmbed()
@@ -38,16 +41,25 @@ namespace CountingBot.Helpers
                         break;
                 }
 
-                return MessageHelpers.GenericErrorEmbed(title: "Parsing Error", message: message.ToString());
+                return MessageHelpers.GenericErrorEmbed(
+                    title: "Parsing Error",
+                    message: message.ToString()
+                );
             }
         }
 
         /// <summary>
         /// Converts a message link or ID into the DiscordMessage
         /// </summary>
-        public static async Task<DiscordMessage> GetMessage(string s, string argumentName, CommandContext context)
+        public static async Task<DiscordMessage> GetMessage(
+            string s,
+            string argumentName,
+            CommandContext context
+        )
         {
-            ulong guildId, channelId, messageId;
+            ulong guildId,
+                channelId,
+                messageId;
 
             guildId = context.Guild!.Id;
 
@@ -71,7 +83,11 @@ namespace CountingBot.Helpers
                 // Extract and convert the IDs
                 if (ulong.Parse(match.Groups[1].Value) != guildId)
                 {
-                    throw new Exception("Can only use messages of current server.", argumentName, Type.Message);
+                    throw new Exception(
+                        "Can only use messages of current server.",
+                        argumentName,
+                        Type.Message
+                    );
                 }
                 channelId = ulong.Parse(match.Groups[2].Value);
                 messageId = ulong.Parse(match.Groups[3].Value);
@@ -79,7 +95,10 @@ namespace CountingBot.Helpers
 
             try
             {
-                DiscordChannel channel = context.Channel.Id == channelId ? context.Channel : await context.Guild.GetChannelAsync(channelId);
+                DiscordChannel channel =
+                    context.Channel.Id == channelId
+                        ? context.Channel
+                        : await context.Guild.GetChannelAsync(channelId);
                 DiscordMessage message = await channel.GetMessageAsync(messageId);
 
                 return message;

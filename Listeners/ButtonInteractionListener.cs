@@ -1,16 +1,11 @@
+using System.Text.RegularExpressions;
+using CountingBot.Helpers;
+using CountingBot.Services;
+using CountingBot.Services.Database;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Serilog;
-
-using CountingBot.Services.Database;
-using CountingBot.Services;
-using CountingBot.Helpers;
-using CountingBot.Listeners;
-using SQLitePCL;
-using ExtendedNumerics.Helpers;
-using System.Text.RegularExpressions;
-using Npgsql;
 
 namespace CountingBot.Listeners
 {
@@ -25,7 +20,8 @@ namespace CountingBot.Listeners
             IGuildSettingsService guildSettingsService,
             IUserInformationService userInformationService,
             ILanguageService languageService,
-            MessageHandler messageHandler)
+            MessageHandler messageHandler
+        )
         {
             _guildSettingsService = guildSettingsService;
             _userInformationService = userInformationService;
@@ -33,7 +29,10 @@ namespace CountingBot.Listeners
             _messageHandler = messageHandler;
         }
 
-        public async Task HandleButtonInteraction(DiscordClient client, ComponentInteractionCreatedEventArgs e)
+        public async Task HandleButtonInteraction(
+            DiscordClient client,
+            ComponentInteractionCreatedEventArgs e
+        )
         {
             try
             {
@@ -44,7 +43,10 @@ namespace CountingBot.Listeners
 
                 TimeSpan timeoutThreshold = TimeSpan.FromMinutes(5);
 
-                if (messageAge > timeoutThreshold)
+                if (
+                    messageAge > timeoutThreshold
+                    && e.Interaction.Data.ComponentType is DiscordComponentType.Button
+                )
                 {
                     var timeoutEmbed = new DiscordEmbedBuilder()
                         .WithTitle("Interaction Timed Out")
@@ -71,7 +73,10 @@ namespace CountingBot.Listeners
                         }
                         catch (DSharpPlus.Exceptions.NotFoundException ex)
                         {
-                            Log.Warning(ex, "Failed to fetch referenced message as it doesn't exist.");
+                            Log.Warning(
+                                ex,
+                                "Failed to fetch referenced message as it doesn't exist."
+                            );
                         }
 
                         await HandleReviveUsageAsync(e, referencedMessage);
@@ -82,26 +87,58 @@ namespace CountingBot.Listeners
                     {
                         Log.Information("Reset Confirmed for user {UserId}", e.User.Id);
                         await _userInformationService.DeleteUserInformationAsync(e.User.Id);
-                        string lang = await _userInformationService.GetUserPreferredLanguageAsync(e.User.Id);
-                        string title = await _languageService.GetLocalizedStringAsync("ResetConfirmedTitle", lang);
-                        string message = await _languageService.GetLocalizedStringAsync("ResetConfirmedMessage", lang);
+                        string lang = await _userInformationService.GetUserPreferredLanguageAsync(
+                            e.User.Id
+                        );
+                        string title = await _languageService.GetLocalizedStringAsync(
+                            "ResetConfirmedTitle",
+                            lang
+                        );
+                        string message = await _languageService.GetLocalizedStringAsync(
+                            "ResetConfirmedMessage",
+                            lang
+                        );
                         var embed = MessageHelpers.GenericEmbed(title, message);
-                        var responseBuilder = new DiscordInteractionResponseBuilder().ClearEmbeds().AddEmbed(embed).AsEphemeral(true);
+                        var responseBuilder = new DiscordInteractionResponseBuilder()
+                            .ClearEmbeds()
+                            .AddEmbed(embed)
+                            .AsEphemeral(true);
                         responseBuilder.ClearComponents();
-                        await e.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, responseBuilder);
+                        await e.Interaction.CreateResponseAsync(
+                            DiscordInteractionResponseType.UpdateMessage,
+                            responseBuilder
+                        );
                         break;
                     }
 
                     case "cancel_reset":
                     {
                         Log.Information("Reset Canceled for user {UserId}", e.User.Id);
-                        string lang = await _userInformationService.GetUserPreferredLanguageAsync(e.User.Id);
-                        string title = await _languageService.GetLocalizedStringAsync("ResetCanceledTitle", lang);
-                        string message = await _languageService.GetLocalizedStringAsync("ResetCanceledMessage", lang);
-                        var embed = MessageHelpers.GenericEmbed(title, message, DiscordColor.Orange.ToString());
-                        var responseBuilder = new DiscordInteractionResponseBuilder().ClearEmbeds().AddEmbed(embed).AsEphemeral(true);
+                        string lang = await _userInformationService.GetUserPreferredLanguageAsync(
+                            e.User.Id
+                        );
+                        string title = await _languageService.GetLocalizedStringAsync(
+                            "ResetCanceledTitle",
+                            lang
+                        );
+                        string message = await _languageService.GetLocalizedStringAsync(
+                            "ResetCanceledMessage",
+                            lang
+                        );
+                        var embed = MessageHelpers.GenericEmbed(
+                            title,
+                            message,
+                            DiscordColor.Orange.ToString()
+                        );
+                        var responseBuilder = new DiscordInteractionResponseBuilder()
+                            .ClearEmbeds()
+                            .AddEmbed(embed)
+                            .AsEphemeral(true);
                         responseBuilder.ClearComponents();
-                        await e.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, responseBuilder);
+                        await e.Interaction.CreateResponseAsync(
+                            DiscordInteractionResponseType.UpdateMessage,
+                            responseBuilder
+                        );
                         break;
                     }
 
@@ -122,6 +159,12 @@ namespace CountingBot.Listeners
                         await HandleAchievementPageNavigation(e, false);
                         break;
                     }
+
+                    case "bug_fixed":
+                    {
+                        await HandleBugFixedAsync(e);
+                        break;
+                    }
                 }
             }
             catch (Exception ex)
@@ -130,31 +173,87 @@ namespace CountingBot.Listeners
             }
         }
 
-        private async Task HandleAchievementPageNavigation(ComponentInteractionCreatedEventArgs e, bool isNextPage)
+        /// <summary>
+        /// Function to handle the "bug_fixed" button interaction.
+        /// </summary>
+        /// <param name="e" description="The event arguments for the button interaction."></param>
+        /// <returns></returns>
+        private async Task HandleBugFixedAsync(ComponentInteractionCreatedEventArgs eventContext)
         {
-            string lang = await _userInformationService.GetUserPreferredLanguageAsync(e.User.Id)
+            // Extract the user ID from the button ID
+            var lang = await GetUserLanguageAsync(eventContext);
+
+            // Build the response
+            var title = await _languageService.GetLocalizedStringAsync("BugReportFixedTitle", lang);
+            var message = await _languageService.GetLocalizedStringAsync(
+                "BugReportFixedDescription",
+                lang
+            );
+            var embed = MessageHelpers.GenericEmbed(title, message, DiscordColor.Green.ToString());
+
+            // Delete the original message
+            await eventContext.Message.DeleteAsync();
+
+            // Respond with the new message
+            var responseBuilder = new DiscordInteractionResponseBuilder()
+                .AddEmbed(embed)
+                .AsEphemeral(true);
+            responseBuilder.ClearComponents();
+            await eventContext.Interaction.CreateResponseAsync(
+                DiscordInteractionResponseType.ChannelMessageWithSource,
+                responseBuilder
+            );
+
+            Log.Information("Bug report marked as fixed by {User}", eventContext.User.Username);
+        }
+
+        private async Task HandleAchievementPageNavigation(
+            ComponentInteractionCreatedEventArgs e,
+            bool isNextPage
+        )
+        {
+            string lang =
+                await _userInformationService.GetUserPreferredLanguageAsync(e.User.Id)
                 ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild!.Id)
                 ?? "en";
 
-            var (currentPage, totalPages) = await GetCurrentPageFromFooter(e.Message.Embeds[0]);
+            var (currentPage, totalPages) = GetCurrentPageFromFooter(e.Message.Embeds[0]);
 
             int newPage = isNextPage ? currentPage + 1 : currentPage - 1;
             newPage = Math.Clamp(newPage, 1, totalPages);
 
-            var unlockedAchievements = await _userInformationService.GetUnlockedAchievementsAsync(e.User.Id, pageNumber: newPage, pageSize: 5);
-            var totalAchievements = await _userInformationService.GetUnlockedAchievementsAsync(e.User.Id, 1, pageSize: 9999);
+            var unlockedAchievements = await _userInformationService.GetUnlockedAchievementsAsync(
+                e.User.Id,
+                pageNumber: newPage,
+                pageSize: 5
+            );
+            var totalAchievements = await _userInformationService.GetUnlockedAchievementsAsync(
+                e.User.Id,
+                1,
+                pageSize: 9999
+            );
 
-            string title = await _languageService.GetLocalizedStringAsync("AchievementsTitle", lang);
+            string title = await _languageService.GetLocalizedStringAsync(
+                "AchievementsTitle",
+                lang
+            );
             title = string.Format(title, e.User.GlobalName);
 
-            string description = await _languageService.GetLocalizedStringAsync("AchievementsDescription", lang);
-            description = string.Format(description, totalAchievements.Count(c => c.IsCompleted).ToString(), totalAchievements.Count);
+            string description = await _languageService.GetLocalizedStringAsync(
+                "AchievementsDescription",
+                lang
+            );
+            description = string.Format(
+                description,
+                totalAchievements.Count(c => c.IsCompleted).ToString(),
+                totalAchievements.Count
+            );
 
             var embed = new DiscordEmbedBuilder
             {
                 Title = title,
                 Description = description,
-                Color = DiscordColor.Green
+                Color = DiscordColor.Green,
             };
             embed.WithThumbnail(e.User.AvatarUrl);
             embed.WithFooter($"Page {newPage}/{totalPages}");
@@ -164,25 +263,40 @@ namespace CountingBot.Listeners
                 bool isUnlocked = achievement.IsCompleted;
                 string statusSymbol = isUnlocked ? "✅" : "❌";
 
-                string? localizedName = achievement.Secret && !isUnlocked
-                    ? await _languageService.GetLocalizedStringAsync("SecretAchievement", lang)
-                    : await _languageService.GetLocalizedStringAsync(achievement.Name, lang);
+                string? localizedName =
+                    achievement.Secret && !isUnlocked
+                        ? await _languageService.GetLocalizedStringAsync("SecretAchievement", lang)
+                        : await _languageService.GetLocalizedStringAsync(achievement.Name, lang);
 
-                string? localizedDescription = achievement.Secret && !isUnlocked
-                    ? await _languageService.GetLocalizedStringAsync("SecretAchievementDescription", lang)
-                    : await _languageService.GetLocalizedStringAsync(achievement.Description!, lang);
+                string? localizedDescription =
+                    achievement.Secret && !isUnlocked
+                        ? await _languageService.GetLocalizedStringAsync(
+                            "SecretAchievementDescription",
+                            lang
+                        )
+                        : await _languageService.GetLocalizedStringAsync(
+                            achievement.Description!,
+                            lang
+                        );
 
-                embed.AddField($"{statusSymbol} {localizedName}", "╰➤ " + localizedDescription!, false);
+                embed.AddField(
+                    $"{statusSymbol} {localizedName}",
+                    "╰➤ " + localizedDescription!,
+                    false
+                );
             }
 
             var response = new DiscordInteractionResponseBuilder()
                 .AddEmbed(embed)
                 .AddComponents(e.Message.ComponentActionRows!);
 
-            await e.Interaction.CreateResponseAsync(DiscordInteractionResponseType.UpdateMessage, response);
+            await e.Interaction.CreateResponseAsync(
+                DiscordInteractionResponseType.UpdateMessage,
+                response
+            );
         }
 
-        public async Task<(int currentPage, int totalPages)> GetCurrentPageFromFooter(DiscordEmbed embed)
+        public static (int currentPage, int totalPages) GetCurrentPageFromFooter(DiscordEmbed embed)
         {
             var footerText = embed.Footer?.Text;
 
@@ -210,61 +324,19 @@ namespace CountingBot.Listeners
 
         private async Task HandleTranslationAsync(ComponentInteractionCreatedEventArgs e)
         {
-            string lang = await _userInformationService.GetUserPreferredLanguageAsync(e.User.Id)
-                                    ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild.Id)
-                                    ?? "en";
+            var lang = await GetUserLanguageAsync(e);
+            var (embedDescription, embedFields) = ExtractEmbedContent(e.Message);
+            var translationKeys = ParseTranslationKeys(e.Id);
 
-            string? embedDescription = null;
-            string? embedFields = null;
-
-            if (e.Message.Embeds.Count > 0)
+            if (translationKeys.titleKey is not null)
             {
-                embedDescription = e.Message.Embeds[0].Description;
-            }
-            if (e.Message.Embeds[0].Fields is not null)
-            {
-                embedFields = string.Join("\n", e.Message.Embeds[0].Fields!.Select(f => $"**{f.Name}:** {f.Value}"));
-            }
-
-            string[] args = e.Id.Substring("translate_".Length).Split('_');
-
-            if (args.Length >= 1)
-            {
-                string? titleKey = args.Length > 0 ? args[0] : null;
-                string? messageKey = args.Length > 1 ? args[1] : null;
-                string? footerKey = args.Length > 2 ? args[2] : null;
-                
-                var embed = new DiscordEmbedBuilder
-                {
-                    Color = DiscordColor.Lilac
-                };
-
-                if (titleKey is not null)
-                {
-                    string title = await _languageService.GetLocalizedStringAsync(titleKey, lang);
-                    embed.WithTitle(title);
-                }
-
-                if (messageKey is not null)
-                {
-                    string description = await _languageService.GetLocalizedStringAsync(messageKey, lang);
-                    embed.WithDescription(description);
-                }
-                if (messageKey!.ToString() is "Original")
-                {
-                    embed.WithDescription(embedDescription!);
-                    embed.WithDescription(embedFields!);
-                }
-                
-                if (footerKey is not null)
-                {
-                    string footer = await _languageService.GetLocalizedStringAsync(footerKey, lang);
-                    embed.WithFooter(footer);
-                }
-
-                var responseBuilder = new DiscordInteractionResponseBuilder().AddEmbed(embed).AsEphemeral(true);
-
-                await e.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, responseBuilder);
+                await SendTranslatedResponseAsync(
+                    e,
+                    lang,
+                    translationKeys,
+                    embedDescription,
+                    embedFields
+                );
             }
             else
             {
@@ -272,9 +344,106 @@ namespace CountingBot.Listeners
             }
         }
 
-        private async Task HandleReviveUsageAsync(ComponentInteractionCreatedEventArgs e, DiscordMessage? referencedMessage)
+        private async Task<string> GetUserLanguageAsync(ComponentInteractionCreatedEventArgs e)
         {
-            var revivesAvailable = await _userInformationService.GetUserRevivesAsync(e.User.Id, false);
+            return await _userInformationService.GetUserPreferredLanguageAsync(e.User.Id)
+                ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild.Id)
+                ?? "en";
+        }
+
+        private static (string? description, string? fields) ExtractEmbedContent(
+            DiscordMessage message
+        )
+        {
+            string? description = null;
+            string? fields = null;
+
+            if (message.Embeds.Count > 0)
+            {
+                description = message.Embeds[0].Description;
+                if (message.Embeds[0].Fields is not null)
+                {
+                    fields = string.Join(
+                        "\n",
+                        message.Embeds[0].Fields!.Select(f => $"**{f.Name}:** {f.Value}")
+                    );
+                }
+            }
+
+            return (description, fields);
+        }
+
+        private static (
+            string? titleKey,
+            string? messageKey,
+            string? footerKey
+        ) ParseTranslationKeys(string buttonId)
+        {
+            string[] args = buttonId.Substring("translate_".Length).Split('_');
+            return (
+                titleKey: args.Length > 0 ? args[0] : null,
+                messageKey: args.Length > 1 ? args[1] : null,
+                footerKey: args.Length > 2 ? args[2] : null
+            );
+        }
+
+        private async Task SendTranslatedResponseAsync(
+            ComponentInteractionCreatedEventArgs e,
+            string lang,
+            (string? titleKey, string? messageKey, string? footerKey) keys,
+            string? embedDescription,
+            string? embedFields
+        )
+        {
+            var embed = new DiscordEmbedBuilder { Color = DiscordColor.Lilac };
+
+            if (keys.titleKey is not null)
+            {
+                embed.WithTitle(
+                    await _languageService.GetLocalizedStringAsync(keys.titleKey, lang)
+                );
+            }
+
+            if (keys.messageKey is not null)
+            {
+                if (keys.messageKey is "Original")
+                {
+                    embed.WithDescription(embedDescription!);
+                    embed.WithDescription(embedFields!);
+                }
+                else
+                {
+                    embed.WithDescription(
+                        await _languageService.GetLocalizedStringAsync(keys.messageKey, lang)
+                    );
+                }
+            }
+
+            if (keys.footerKey is not null)
+            {
+                embed.WithFooter(
+                    await _languageService.GetLocalizedStringAsync(keys.footerKey, lang)
+                );
+            }
+
+            var responseBuilder = new DiscordInteractionResponseBuilder()
+                .AddEmbed(embed)
+                .AsEphemeral(true);
+            await e.Interaction.CreateResponseAsync(
+                DiscordInteractionResponseType.ChannelMessageWithSource,
+                responseBuilder
+            );
+        }
+
+        private async Task HandleReviveUsageAsync(
+            ComponentInteractionCreatedEventArgs e,
+            DiscordMessage? referencedMessage
+        )
+        {
+            var revivesAvailable = await _userInformationService.GetUserRevivesAsync(
+                e.User.Id,
+                false
+            );
             if (!revivesAvailable)
             {
                 await RespondNoRevivesAsync(e);
@@ -285,30 +454,40 @@ namespace CountingBot.Listeners
             await HandleSuccessfulReviveAsync(e, referencedMessage);
         }
 
-        private async Task HandleSuccessfulReviveAsync(ComponentInteractionCreatedEventArgs e, DiscordMessage? referencedMessage)
+        private async Task HandleSuccessfulReviveAsync(
+            ComponentInteractionCreatedEventArgs e,
+            DiscordMessage? referencedMessage
+        )
         {
             try
             {
                 await referencedMessage!.DeleteAsync();
                 await e.Message.DeleteAsync();
             }
-            catch(DSharpPlus.Exceptions.NotFoundException ex)
+            catch (DSharpPlus.Exceptions.NotFoundException ex)
             {
                 Log.Warning(ex, "Failed to delete referenced message as it dosnt exits.");
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Failed to delete referenced message {MessageId}", referencedMessage!.Id);
+                Log.Warning(
+                    ex,
+                    "Failed to delete referenced message {MessageId}",
+                    referencedMessage!.Id
+                );
             }
 
             var (baseValue, currentCount) = await GetCountDetailsAsync(e.Guild.Id, e.Channel.Id);
             var nextCount = Convert.ToString(currentCount + 1, baseValue);
 
-            string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild.Id) ?? "en";
+            string lang =
+                await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild.Id) ?? "en";
             var title = await _languageService.GetLocalizedStringAsync("CountRevivedTitle", lang);
-            var descriptionTemplate = await _languageService.GetLocalizedStringAsync("CountRevivedDescription", lang);
+            var descriptionTemplate = await _languageService.GetLocalizedStringAsync(
+                "CountRevivedDescription",
+                lang
+            );
             var description = string.Format(descriptionTemplate, nextCount);
-            
 
             var revivedEmbed = new DiscordEmbedBuilder()
                 .WithTitle(title)
@@ -319,21 +498,46 @@ namespace CountingBot.Listeners
 
             var responseBuilder = new DiscordInteractionResponseBuilder()
                 .AddEmbed(revivedEmbed)
-                .AddComponents(new DiscordButtonComponent(DiscordButtonStyle.Secondary, "translate_CountRevivedTitle_CountRevivedDescription", DiscordEmoji.FromUnicode("🌐")));
+                .AddComponents(
+                    new DiscordButtonComponent(
+                        DiscordButtonStyle.Secondary,
+                        "translate_CountRevivedTitle_CountRevivedDescription",
+                        DiscordEmoji.FromUnicode("🌐")
+                    )
+                );
 
-            await e.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource, responseBuilder);
+            await e.Interaction.CreateResponseAsync(
+                DiscordInteractionResponseType.ChannelMessageWithSource,
+                responseBuilder
+            );
             _messageHandler.RemoveChannelFromReviving(e.Guild.Id, e.Channel.Id);
         }
 
-        private async Task<DiscordMessage?> GetReferencedMessageAsync(ComponentInteractionCreatedEventArgs e)
+        private async Task<DiscordMessage?> GetReferencedMessageAsync(
+            ComponentInteractionCreatedEventArgs e
+        )
         {
-            if (e.Message.Reference?.Message == null)
+            if (e.Message.Reference?.Message is null)
             {
                 Log.Warning("No referenced message for interaction {InteractionId}", e.Id);
-                string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild.Id) ?? "en";
-                string errorMsg = await _languageService.GetLocalizedStringAsync("OriginalMessageNotFound", lang);
-                await e.Interaction.CreateResponseAsync(DiscordInteractionResponseType.ChannelMessageWithSource,
-                    new DiscordInteractionResponseBuilder().WithContent(errorMsg));
+                string lang =
+                    await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild.Id) ?? "en";
+                string errorMsg = await _languageService.GetLocalizedStringAsync(
+                    "OriginalMessageNotFound",
+                    lang
+                );
+                await e.Interaction.CreateResponseAsync(
+                    DiscordInteractionResponseType.ChannelMessageWithSource,
+                    new DiscordInteractionResponseBuilder()
+                        .WithContent(errorMsg)
+                        .AddComponents(
+                            new DiscordButtonComponent(
+                                DiscordButtonStyle.Secondary,
+                                "translate_null_OriginalMessageNotFound",
+                                DiscordEmoji.FromUnicode("🌐")
+                            )
+                        )
+                );
                 return null;
             }
 
@@ -343,26 +547,43 @@ namespace CountingBot.Listeners
         private async Task RespondNoRevivesAsync(ComponentInteractionCreatedEventArgs e)
         {
             Log.Information("User {UserId} has no revives", e.User.Id);
-            string lang = await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild.Id) ?? "en";
-            string content = await _languageService.GetLocalizedStringAsync("NoRevivesLeftMessage", lang);
-            await RespondToInteractionAsync(e, content, "Null","NoRevivesLeftMessage");
+            string lang =
+                await _guildSettingsService.GetGuildPreferredLanguageAsync(e.Guild.Id) ?? "en";
+            string content = await _languageService.GetLocalizedStringAsync(
+                "NoRevivesLeftMessage",
+                lang
+            );
+            await RespondToInteractionAsync(e, content, "Null", "NoRevivesLeftMessage");
         }
 
-        private static async Task RespondToInteractionAsync(ComponentInteractionCreatedEventArgs e, string content, string titleKey, string messageKey)
+        private static async Task RespondToInteractionAsync(
+            ComponentInteractionCreatedEventArgs e,
+            string content,
+            string titleKey,
+            string messageKey
+        )
         {
-            var embed = new DiscordEmbedBuilder()
-                .WithDescription($"{content}");
+            var embed = new DiscordEmbedBuilder().WithDescription($"{content}");
 
             await e.Interaction.CreateResponseAsync(
                 DiscordInteractionResponseType.ChannelMessageWithSource,
                 new DiscordInteractionResponseBuilder()
-                .AddEmbed(embed)
-                .AddComponents(new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_{titleKey}_{messageKey}", DiscordEmoji.FromUnicode("🌐")))
-                .AsEphemeral(true)
+                    .AddEmbed(embed)
+                    .AddComponents(
+                        new DiscordButtonComponent(
+                            DiscordButtonStyle.Secondary,
+                            $"translate_{titleKey}_{messageKey}",
+                            DiscordEmoji.FromUnicode("🌐")
+                        )
+                    )
+                    .AsEphemeral(true)
             );
         }
 
-        private async Task<(int baseValue, int currentCount)> GetCountDetailsAsync(ulong guildId, ulong channelId)
+        private async Task<(int baseValue, int currentCount)> GetCountDetailsAsync(
+            ulong guildId,
+            ulong channelId
+        )
         {
             return (
                 await _guildSettingsService.GetChannelBase(guildId, channelId),

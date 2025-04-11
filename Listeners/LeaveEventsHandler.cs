@@ -1,12 +1,13 @@
+using CountingBot.Services.Database;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
-using CountingBot.Services.Database;
 
 namespace CountingBot.Listeners
 {
     public class LeaveEventsHandler
     {
         private readonly IGuildSettingsService _guildSettingsService;
+
         public LeaveEventsHandler(IGuildSettingsService guildSettingsService)
         {
             _guildSettingsService = guildSettingsService;

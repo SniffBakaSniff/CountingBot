@@ -12,7 +12,7 @@ namespace CountingBot.Database.Models
         public Dictionary<string, CommandPermissionData> CommandPermissions { get; set; } = [];
 
         [Timestamp]
-        public byte[] RowVersion { get; set; }
+        public byte[]? RowVersion { get; set; }
 
         public CommandPermissionData GetOrCreateCommandPermissionData(string permissionKey)
         {
@@ -36,7 +36,7 @@ namespace CountingBot.Database.Models
         public int Highescore { get; set; } = 0;
 
         [Timestamp]
-        public byte[] RowVersion { get; set; }
+        public byte[]? RowVersion { get; set; }
     }
 
     public class CommandPermissionData
@@ -44,5 +44,7 @@ namespace CountingBot.Database.Models
         public bool? Enabled { get; set; }
         public List<ulong> Users { get; set; } = new List<ulong>();
         public List<ulong> Roles { get; set; } = new List<ulong>();
+        public List<ulong> BlacklistedUsers { get; set; } = new List<ulong>();
+        public List<ulong> BlacklistedRoles { get; set; } = new List<ulong>();
     }
 }

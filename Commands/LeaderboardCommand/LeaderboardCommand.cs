@@ -1,12 +1,11 @@
-using System.Text;
-using DSharpPlus.Commands;
-using DSharpPlus.Entities;
 using System.ComponentModel;
-using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
-using Serilog;
-
+using System.Text;
 using CountingBot.Database.Models;
 using CountingBot.Features.Attributes;
+using DSharpPlus.Commands;
+using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
+using DSharpPlus.Entities;
+using Serilog;
 
 namespace CountingBot.Features.Commands
 {
@@ -14,37 +13,82 @@ namespace CountingBot.Features.Commands
     {
         [Command("leaderboard")]
         [Description("Displays the leaderboard for your guild or globally.")]
-        [PermissionCheck("leaderboard_command", userBypass:true)]
-        public async Task LeaderboardCommand(CommandContext ctx, Type type = Type.Guild, LeaderboardCategory leaderboardCategory = LeaderboardCategory.TotalCounts, int page = 1)
+        [PermissionCheck("leaderboard_command", userBypass: true)]
+        public async Task LeaderboardCommand(
+            CommandContext ctx,
+            Type type = Type.Guild,
+            LeaderboardCategory leaderboardCategory = LeaderboardCategory.TotalCounts,
+            int page = 1
+        )
         {
-            string lang = await _userInformationService.GetUserPreferredLanguageAsync(ctx.User.Id)
-                        ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(ctx.Guild!.Id)
-                        ?? "en";
+            string lang =
+                await _userInformationService.GetUserPreferredLanguageAsync(ctx.User.Id)
+                ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(ctx.Guild!.Id)
+                ?? "en";
 
-            Log.Information("Leaderboard command called by {UserName} (ID: {UserId}) for {GuildName} (ID: {GuildId}). Type: {Type}, Category: {LeaderboardCategory}, Page: {Page}",
-                ctx.User.Username, ctx.User.Id, ctx.Guild!.Name, ctx.Guild.Id, type, leaderboardCategory, page);
+            Log.Information(
+                "Leaderboard command called by {UserName} (ID: {UserId}) for {GuildName} (ID: {GuildId}). Type: {Type}, Category: {LeaderboardCategory}, Page: {Page}",
+                ctx.User.Username,
+                ctx.User.Id,
+                ctx.Guild!.Name,
+                ctx.Guild.Id,
+                type,
+                leaderboardCategory,
+                page
+            );
 
             switch (type)
             {
                 case Type.Guild:
-                    Log.Information("Fetching guild leaderboard data for guild ID: {GuildId}", ctx.Guild.Id);
-                    await HandleLeaderboardAsync(ctx, lang, page, ctx.Guild!.Id, leaderboardCategory, false);
+                    Log.Information(
+                        "Fetching guild leaderboard data for guild ID: {GuildId}",
+                        ctx.Guild.Id
+                    );
+                    await HandleLeaderboardAsync(
+                        ctx,
+                        lang,
+                        page,
+                        ctx.Guild!.Id,
+                        leaderboardCategory,
+                        false
+                    );
                     break;
 
                 case Type.Global:
                     Log.Information("Fetching global leaderboard data.");
-                    await HandleLeaderboardAsync(ctx, lang, page, ctx.Guild!.Id, leaderboardCategory, true);
+                    await HandleLeaderboardAsync(
+                        ctx,
+                        lang,
+                        page,
+                        ctx.Guild!.Id,
+                        leaderboardCategory,
+                        true
+                    );
                     break;
             }
         }
 
-        private async Task HandleLeaderboardAsync(CommandContext ctx, string lang, int page, ulong guildId, LeaderboardCategory leaderboardCategory, bool isGlobal)
+        private async Task HandleLeaderboardAsync(
+            CommandContext ctx,
+            string lang,
+            int page,
+            ulong guildId,
+            LeaderboardCategory leaderboardCategory,
+            bool isGlobal
+        )
         {
-            Log.Information("Fetching leaderboard data (Type: {Type}, Category: {LeaderboardCategory}, Page: {Page})", isGlobal ? "Global" : "Guild", leaderboardCategory, page);
+            Log.Information(
+                "Fetching leaderboard data (Type: {Type}, Category: {LeaderboardCategory}, Page: {Page})",
+                isGlobal ? "Global" : "Guild",
+                leaderboardCategory,
+                page
+            );
 
             var leaderboards = await _leaderboardService.GetLeaderboardsAsync(page, 10, guildId);
 
-            string leaderboardKey = isGlobal ? $"Global{leaderboardCategory}" : leaderboardCategory.ToString();
+            string leaderboardKey = isGlobal
+                ? $"Global{leaderboardCategory}"
+                : leaderboardCategory.ToString();
 
             string key = leaderboardCategory switch
             {
@@ -53,13 +97,17 @@ namespace CountingBot.Features.Commands
                 LeaderboardCategory.TotalCorrectCounts => "LeaderboardCategoryTotalCorrectCounts",
                 LeaderboardCategory.BestStreak => "LeaderboardCategoryBestStreak",
                 LeaderboardCategory.CurrentStreak => "LeaderboardCategoryCurrentStreak",
-                _ => "DefaultLeaderboardTitle"
+                _ => "DefaultLeaderboardTitle",
             };
             string leaderboardType = isGlobal ? "Global" : "Guild";
 
             if (!leaderboards.ContainsKey(leaderboardKey))
             {
-                Log.Warning("Leaderboard data for {LeaderboardCategory} not found for guild ID: {GuildId}", leaderboardCategory, guildId);
+                Log.Warning(
+                    "Leaderboard data for {LeaderboardCategory} not found for guild ID: {GuildId}",
+                    leaderboardCategory,
+                    guildId
+                );
                 await ctx.RespondAsync("Invalid leaderboard type.");
                 return;
             }
@@ -68,28 +116,57 @@ namespace CountingBot.Features.Commands
 
             if (leaderboardData.Count == 0)
             {
-                string noData = await _languageService.GetLocalizedStringAsync("NoLeaderboardData", lang);
-                Log.Information("No leaderboard data available for {LeaderboardCategory} (Guild ID: {GuildId})", leaderboardCategory, guildId);
+                string noData = await _languageService.GetLocalizedStringAsync(
+                    "NoLeaderboardData",
+                    lang
+                );
+                Log.Information(
+                    "No leaderboard data available for {LeaderboardCategory} (Guild ID: {GuildId})",
+                    leaderboardCategory,
+                    guildId
+                );
                 await ctx.RespondAsync(noData);
                 return;
             }
 
             string title = await GetLeaderboardTitleAsync(leaderboardCategory, lang, isGlobal);
-            var leaderboardText = await BuildLeaderboardText(ctx, leaderboardData, guildId, leaderboardCategory);
+            var leaderboardText = await BuildLeaderboardText(
+                ctx,
+                leaderboardData,
+                guildId,
+                leaderboardCategory
+            );
 
             var embed = new DiscordEmbedBuilder()
                 .WithTitle(title)
                 .WithDescription(leaderboardText)
                 .WithColor(DiscordColor.Gold);
 
-            Log.Information("Sending leaderboard response for {LeaderboardCategory} (Guild ID: {GuildId})", leaderboardCategory, guildId);
-            
-            await ctx.RespondAsync(new DiscordMessageBuilder().AddEmbed(embed).AddComponents(
-                    new DiscordButtonComponent(DiscordButtonStyle.Secondary, $"translate_{leaderboardType}{key}_Original", DiscordEmoji.FromUnicode("🌐"))
-            ));
+            Log.Information(
+                "Sending leaderboard response for {LeaderboardCategory} (Guild ID: {GuildId})",
+                leaderboardCategory,
+                guildId
+            );
+
+            await ctx.RespondAsync(
+                new DiscordMessageBuilder()
+                    .AddEmbed(embed)
+                    .AddComponents(
+                        new DiscordButtonComponent(
+                            DiscordButtonStyle.Secondary,
+                            $"translate_{leaderboardType}{key}_Original",
+                            DiscordEmoji.FromUnicode("🌐")
+                        )
+                    )
+            );
         }
 
-        private static async Task<string> BuildLeaderboardText(CommandContext ctx, List<UserInformation> leaderboardData, ulong guildId, LeaderboardCategory leaderboardCategory)
+        private static async Task<string> BuildLeaderboardText(
+            CommandContext ctx,
+            List<UserInformation> leaderboardData,
+            ulong guildId,
+            LeaderboardCategory leaderboardCategory
+        )
         {
             var leaderboardText = new StringBuilder();
             int rank = 1;
@@ -107,7 +184,7 @@ namespace CountingBot.Features.Commands
                     LeaderboardCategory.TotalCorrectCounts => stats.TotalCorrectCounts,
                     LeaderboardCategory.CurrentStreak => stats.CurrentStreak,
                     LeaderboardCategory.BestStreak => stats.BestStreak,
-                    _ => stats.TotalCounts
+                    _ => stats.TotalCounts,
                 };
 
                 leaderboardText.AppendLine($"**#{rank}** ---- {userName} ---- **{displayValue}**");
@@ -118,7 +195,11 @@ namespace CountingBot.Features.Commands
             return leaderboardText.ToString();
         }
 
-        private async Task<string> GetLeaderboardTitleAsync(LeaderboardCategory type, string lang, bool isGlobal)
+        private async Task<string> GetLeaderboardTitleAsync(
+            LeaderboardCategory type,
+            string lang,
+            bool isGlobal
+        )
         {
             string key = type switch
             {
@@ -127,30 +208,45 @@ namespace CountingBot.Features.Commands
                 LeaderboardCategory.TotalCorrectCounts => "LeaderboardCategoryTotalCorrectCounts",
                 LeaderboardCategory.BestStreak => "LeaderboardCategoryBestStreak",
                 LeaderboardCategory.CurrentStreak => "LeaderboardCategoryCurrentStreak",
-                _ => "DefaultLeaderboardTitle"
+                _ => "DefaultLeaderboardTitle",
             };
 
             string leaderboardType = isGlobal ? "Global" : "Guild";
 
-            Log.Information("Fetching title for {LeaderboardType} leaderboard: {Key}", leaderboardType, key);
+            Log.Information(
+                "Fetching title for {LeaderboardType} leaderboard: {Key}",
+                leaderboardType,
+                key
+            );
 
             return await _languageService.GetLocalizedStringAsync($"{leaderboardType}{key}", lang);
         }
 
         private static async Task<string> GetUserDisplayName(CommandContext ctx, ulong userId)
         {
-            Log.Information("Fetching display name for user ID: {UserId} in guild ID: {GuildId}", userId, ctx.Guild!.Id);
+            Log.Information(
+                "Fetching display name for user ID: {UserId} in guild ID: {GuildId}",
+                userId,
+                ctx.Guild!.Id
+            );
 
             var member = await ctx.Client.GetUserAsync(userId);
 
             if (member is not null)
             {
-                string displayName = member.GlobalName.Length > 19 ? member.GlobalName[..19] + "..." : member.GlobalName;
+                string displayName =
+                    member.GlobalName.Length > 19
+                        ? member.GlobalName[..19] + "..."
+                        : member.GlobalName;
                 Log.Information("User found. Display name: {DisplayName}", displayName);
                 return displayName;
             }
 
-            Log.Warning("User with ID: {UserId} not found in guild ID: {GuildId}", userId, ctx.Guild!.Id);
+            Log.Warning(
+                "User with ID: {UserId} not found in guild ID: {GuildId}",
+                userId,
+                ctx.Guild!.Id
+            );
             return "Unknown User";
         }
     }
@@ -161,7 +257,7 @@ namespace CountingBot.Features.Commands
         Guild,
 
         [ChoiceDisplayName("Global")]
-        Global
+        Global,
     }
 
     public enum LeaderboardCategory
@@ -179,6 +275,6 @@ namespace CountingBot.Features.Commands
         CurrentStreak,
 
         [Description("Best Streak")]
-        BestStreak
+        BestStreak,
     }
 }

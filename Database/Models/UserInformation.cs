@@ -52,7 +52,7 @@ namespace CountingBot.Database.Models
         public DateTime CurrentWeek { get; set; } = DateTime.UtcNow;
         public int ActiveDaysThisWeek { get; set; }
         public int TimesCountedToday { get; set; }
-        public int IncorrectCountsToday { get; set;}
+        public int IncorrectCountsToday { get; set; }
         public int CorrectCountsToday { get; set; }
 
         // Timestamps
@@ -62,7 +62,7 @@ namespace CountingBot.Database.Models
 
         // Concurrency
         [Timestamp]
-        public byte[] RowVersion { get; set; }
+        public byte[]? RowVersion { get; set; }
 
         public CountingStats GetOrCreateCountingStats(ulong guildId)
         {

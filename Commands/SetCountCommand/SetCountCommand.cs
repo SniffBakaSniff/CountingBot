@@ -107,33 +107,66 @@ namespace CountingBot.Features.Commands
                     return;
                 }
 
-                await _guildSettingsService.SetChannelsCurrentCount(
+                // Get the current count and base for comparison
+                int currentCount = await _guildSettingsService.GetChannelsCurrentCount(
                     ctx.Guild!.Id,
-                    channel,
-                    newCount
+                    channel
+                );
+                int channelBase = await _guildSettingsService.GetChannelBase(
+                    ctx.Guild!.Id,
+                    channel
                 );
 
-                string countUpdatedTitle = await _languageService.GetLocalizedStringAsync(
-                    "SetCountUpdatedTitle",
+                // Convert the new count to the channel's number system
+                string newCountInChannelBase = Convert.ToString(newCount, channelBase).ToUpperInvariant();
+                string currentCountInChannelBase = Convert.ToString(currentCount, channelBase).ToUpperInvariant();
+
+                // Show confirmation dialog before changing the count
+                string confirmTitle = await _languageService.GetLocalizedStringAsync(
+                    "SetCountConfirmTitle",
                     lang
                 );
-                string countUpdatedMsg = await _languageService.GetLocalizedStringAsync(
-                    "SetCountUpdatedDescription",
+                string confirmMsgTemplate = await _languageService.GetLocalizedStringAsync(
+                    "SetCountConfirmDescription",
                     lang
                 );
-                var successEmbed = MessageHelpers.GenericSuccessEmbed(
-                    countUpdatedTitle,
-                    string.Format(countUpdatedMsg, newCount)
+                string confirmMsg = string.Format(
+                    confirmMsgTemplate,
+                    currentCount,
+                    newCount,
+                    channelBase,
+                    currentCountInChannelBase,
+                    newCountInChannelBase
                 );
+
+                var confirmEmbed = MessageHelpers.GenericEmbed(
+                    confirmTitle,
+                    confirmMsg,
+                    "#FFA500" // Orange color for confirmation
+                );
+
+                // Create a unique ID for this confirmation that includes the channel and new count
+                string confirmId = $"confirm_setcount_{channel}_{newCount}";
+                string cancelId = $"cancel_setcount_{channel}_{newCount}";
 
                 await ctx.RespondAsync(
                     new DiscordInteractionResponseBuilder()
-                        .AddEmbed(successEmbed)
-                        .AsEphemeral(false)
+                        .AddEmbed(confirmEmbed)
+                        .AsEphemeral(true) // Make confirmation ephemeral
                         .AddComponents(
                             new DiscordButtonComponent(
+                                DiscordButtonStyle.Danger,
+                                confirmId,
+                                "Confirm"
+                            ),
+                            new DiscordButtonComponent(
                                 DiscordButtonStyle.Secondary,
-                                $"translate_SetCountUpdatedTitle_SetCountUpdatedDescription",
+                                cancelId,
+                                "Cancel"
+                            ),
+                            new DiscordButtonComponent(
+                                DiscordButtonStyle.Secondary,
+                                $"translate_SetCountConfirmTitle_SetCountConfirmDescription",
                                 DiscordEmoji.FromUnicode("🌐")
                             )
                         )

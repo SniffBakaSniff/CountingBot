@@ -1,5 +1,6 @@
 using CountingBot.Database;
 using CountingBot.Database.Models;
+using CountingBot.Features.Commands;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Serilog;
@@ -237,18 +238,6 @@ namespace CountingBot.Services
         /// Whether the achievement has been completed
         /// </summary>
         public bool IsCompleted { get; set; } = false;
-    }
-
-    /// <summary>
-    /// Categorizes achievements into different types
-    /// </summary>
-    public enum AchievementType
-    {
-        Milestone, // Progress-based achievements
-        Skill, // Achievements based on user ability
-        TimeBased, // Achievements tied to specific times
-        Collection, // Collecting or completing sets
-        Challenge, // Special challenge achievements
     }
 
     /// <summary>

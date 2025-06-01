@@ -142,6 +142,18 @@ namespace CountingBot.Listeners
                         break;
                     }
 
+                    case var _ when e.Id.StartsWith("confirm_setcount_"):
+                    {
+                        await HandleSetCountConfirmationAsync(e, true);
+                        break;
+                    }
+
+                    case var _ when e.Id.StartsWith("cancel_setcount_"):
+                    {
+                        await HandleSetCountConfirmationAsync(e, false);
+                        break;
+                    }
+
                     case var _ when e.Id.StartsWith("translate_"):
                     {
                         await HandleTranslationAsync(e);
@@ -222,22 +234,66 @@ namespace CountingBot.Listeners
             int newPage = isNextPage ? currentPage + 1 : currentPage - 1;
             newPage = Math.Clamp(newPage, 1, totalPages);
 
-            var unlockedAchievements = await _userInformationService.GetUnlockedAchievementsAsync(
-                e.User.Id,
-                pageNumber: newPage,
-                pageSize: 5
-            );
-            var totalAchievements = await _userInformationService.GetUnlockedAchievementsAsync(
+            // Get all achievements
+            var allAchievements = await _userInformationService.GetUnlockedAchievementsAsync(
                 e.User.Id,
                 1,
                 pageSize: 9999
             );
 
+            // Determine the currently selected achievement type from the select menu
+            var achievementTypeSelector = e
+                .Message.Components!.SelectMany(row =>
+                    (row as DiscordActionRowComponent)!.Components.OfType<DiscordSelectComponent>()
+                )
+                .FirstOrDefault(c => c.CustomId == "achievement_type_selector");
+
+            // Default to All if no selector is found
+            var selectedType = Features.Commands.AchievementType.All;
+
+            // Find the selected option and parse the achievement type
+            var selectedOption = achievementTypeSelector?.Options.FirstOrDefault(o => o.Default);
+            if (
+                selectedOption != null
+                && Enum.TryParse<Features.Commands.AchievementType>(
+                    selectedOption.Value,
+                    out var parsedType
+                )
+            )
+            {
+                selectedType = parsedType;
+            }
+
+            // Filter achievements by type
+            var typeString = selectedType.ToString();
+            var filteredAchievements =
+                selectedType == Features.Commands.AchievementType.All
+                    ? allAchievements
+                    : allAchievements
+                        .Where(a =>
+                            !string.IsNullOrEmpty(a.Type.ToString())
+                            && string.Equals(
+                                a.Type.ToString(),
+                                typeString,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                        )
+                        .ToList();
+
+            // Calculate total pages for filtered achievements
+            int totalFilteredPages = (int)Math.Ceiling(filteredAchievements.Count / 5.0);
+
+            // Adjust page number if needed
+            newPage = Math.Clamp(newPage, 1, Math.Max(1, totalFilteredPages));
+
+            // Get the current page of achievements
+            var pageAchievements = filteredAchievements.Skip((newPage - 1) * 5).Take(5).ToList();
+
             string title = await _languageService.GetLocalizedStringAsync(
                 "AchievementsTitle",
                 lang
             );
-            title = string.Format(title, e.User.GlobalName);
+            title = string.Format(title, e.User.GlobalName ?? e.User.Username);
 
             string description = await _languageService.GetLocalizedStringAsync(
                 "AchievementsDescription",
@@ -245,8 +301,8 @@ namespace CountingBot.Listeners
             );
             description = string.Format(
                 description,
-                totalAchievements.Count(c => c.IsCompleted).ToString(),
-                totalAchievements.Count
+                filteredAchievements.Count(c => c.IsCompleted),
+                filteredAchievements.Count
             );
 
             var embed = new DiscordEmbedBuilder
@@ -256,9 +312,9 @@ namespace CountingBot.Listeners
                 Color = DiscordColor.Green,
             };
             embed.WithThumbnail(e.User.AvatarUrl);
-            embed.WithFooter($"Page {newPage}/{totalPages}");
+            embed.WithFooter($"Page {newPage}/{Math.Max(1, totalFilteredPages)}");
 
-            foreach (var achievement in unlockedAchievements)
+            foreach (var achievement in pageAchievements)
             {
                 bool isUnlocked = achievement.IsCompleted;
                 string statusSymbol = isUnlocked ? "✅" : "❌";
@@ -286,6 +342,7 @@ namespace CountingBot.Listeners
                 );
             }
 
+            // Create a response with the same components as the original message
             var response = new DiscordInteractionResponseBuilder()
                 .AddEmbed(embed)
                 .AddComponents(e.Message.ComponentActionRows!);
@@ -379,7 +436,7 @@ namespace CountingBot.Listeners
             string? footerKey
         ) ParseTranslationKeys(string buttonId)
         {
-            string[] args = buttonId.Substring("translate_".Length).Split('_');
+            string[] args = buttonId["translate_".Length..].Split('_');
             return (
                 titleKey: args.Length > 0 ? args[0] : null,
                 messageKey: args.Length > 1 ? args[1] : null,
@@ -589,6 +646,167 @@ namespace CountingBot.Listeners
                 await _guildSettingsService.GetChannelBase(guildId, channelId),
                 await _guildSettingsService.GetChannelsCurrentCount(guildId, channelId)
             );
+        }
+
+        /// <summary>
+        /// Handles the confirmation or cancellation of the setcount command.
+        /// </summary>
+        /// <param name="e">The component interaction event args</param>
+        /// <param name="confirmed">Whether the action was confirmed or canceled</param>
+        private async Task HandleSetCountConfirmationAsync(
+            ComponentInteractionCreatedEventArgs e,
+            bool confirmed
+        )
+        {
+            // Parse the channel ID and new count from the button ID
+            // Format: confirm_setcount_channelId_newCount or cancel_setcount_channelId_newCount
+            string[] parts = e.Id.Split('_');
+            if (parts.Length is not 4)
+            {
+                Log.Error("Invalid setcount confirmation button ID format: {ButtonId}", e.Id);
+                return;
+            }
+
+            if (
+                !ulong.TryParse(parts[2], out ulong channelId)
+                || !int.TryParse(parts[3], out int newCount)
+            )
+            {
+                Log.Error(
+                    "Failed to parse channel ID or new count from button ID: {ButtonId}",
+                    e.Id
+                );
+                return;
+            }
+
+            string lang = await GetUserLanguageAsync(e);
+
+            if (confirmed)
+            {
+                // User confirmed the action, update the count
+                try
+                {
+                    await _guildSettingsService.SetChannelsCurrentCount(
+                        e.Guild.Id,
+                        channelId,
+                        newCount
+                    );
+
+                    // Get the channel's number system base
+                    int channelBase = await _guildSettingsService.GetChannelBase(
+                        e.Guild.Id,
+                        channelId
+                    );
+
+                    // Convert the new count to the channel's number system
+                    string newCountInChannelBase = Convert
+                        .ToString(newCount, channelBase)
+                        .ToUpperInvariant();
+
+                    string countUpdatedTitle = await _languageService.GetLocalizedStringAsync(
+                        "SetCountUpdatedTitle",
+                        lang
+                    );
+                    string countUpdatedMsg = await _languageService.GetLocalizedStringAsync(
+                        "SetCountUpdatedDescription",
+                        lang
+                    );
+                    var successEmbed = MessageHelpers.GenericSuccessEmbed(
+                        countUpdatedTitle,
+                        string.Format(countUpdatedMsg, newCount, channelBase, newCountInChannelBase)
+                    );
+
+                    // Update the confirmation message with success message
+                    var responseBuilder = new DiscordInteractionResponseBuilder()
+                        .AddEmbed(successEmbed)
+                        .AsEphemeral(true);
+                    responseBuilder.ClearComponents();
+                    await e.Interaction.CreateResponseAsync(
+                        DiscordInteractionResponseType.UpdateMessage,
+                        responseBuilder
+                    );
+
+                    // Also send a public message to notify everyone
+                    var publicMessage = new DiscordMessageBuilder()
+                        .AddEmbed(successEmbed)
+                        .AddComponents(
+                            new DiscordButtonComponent(
+                                DiscordButtonStyle.Secondary,
+                                $"translate_SetCountUpdatedTitle_SetCountUpdatedDescription",
+                                DiscordEmoji.FromUnicode("🌐")
+                            )
+                        );
+                    await e.Channel.SendMessageAsync(publicMessage);
+
+                    Log.Information(
+                        "Count successfully updated to {NewCount} for channel {ChannelId} by {User}.",
+                        newCount,
+                        channelId,
+                        e.User.Username
+                    );
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(
+                        ex,
+                        "An error occurred while updating the count for channel {ChannelId} in guild {GuildId}.",
+                        channelId,
+                        e.Guild.Id
+                    );
+
+                    string errorTitle = await _languageService.GetLocalizedStringAsync(
+                        "GenericErrorTitle",
+                        lang
+                    );
+                    string errorMsg = await _languageService.GetLocalizedStringAsync(
+                        "GenericErrorMessage",
+                        lang
+                    );
+                    var errorEmbed = MessageHelpers.GenericErrorEmbed(errorTitle, errorMsg);
+
+                    var responseBuilder = new DiscordInteractionResponseBuilder()
+                        .AddEmbed(errorEmbed)
+                        .AsEphemeral(true);
+                    responseBuilder.ClearComponents();
+                    await e.Interaction.CreateResponseAsync(
+                        DiscordInteractionResponseType.UpdateMessage,
+                        responseBuilder
+                    );
+                }
+            }
+            else
+            {
+                // User canceled the action
+                string cancelTitle = await _languageService.GetLocalizedStringAsync(
+                    "SetCountCanceledTitle",
+                    lang
+                );
+                string cancelMsg = await _languageService.GetLocalizedStringAsync(
+                    "SetCountCanceledDescription",
+                    lang
+                );
+                var cancelEmbed = MessageHelpers.GenericEmbed(
+                    cancelTitle,
+                    cancelMsg,
+                    DiscordColor.Orange.ToString()
+                );
+
+                var responseBuilder = new DiscordInteractionResponseBuilder()
+                    .AddEmbed(cancelEmbed)
+                    .AsEphemeral(true);
+                responseBuilder.ClearComponents();
+                await e.Interaction.CreateResponseAsync(
+                    DiscordInteractionResponseType.UpdateMessage,
+                    responseBuilder
+                );
+
+                Log.Information(
+                    "Count update to {NewCount} for channel {ChannelId} was canceled by {User}.",
+                    newCount,
+                    channelId,
+                    e.User.Username
+                );
+            }
         }
     }
 }

@@ -69,7 +69,7 @@ namespace CountingBot
         private static void ConfigureSerilog()
         {
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
+                .MinimumLevel.Error()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .Enrich.FromLogContext()
                 .Enrich.WithEnvironmentName()
@@ -118,9 +118,6 @@ namespace CountingBot
         {
             var dbContext = new BotDbContext();
 
-            // Create resource monitoring and caching services
-            var resourceMonitor = new ResourceMonitorService(5); // Log resource usage every 5 minutes
-
             // Create cache service with different expiration times for different data types
             var cacheService = new CacheService(30); // Default 30 minute expiration
 
@@ -139,7 +136,6 @@ namespace CountingBot
                 services.AddScoped<ILeaderboardService, LeaderboardService>();
 
                 // Register services
-                services.AddSingleton(resourceMonitor);
                 services.AddSingleton<ICacheService>(cacheService);
                 services.AddSingleton(achievementService);
 
@@ -199,6 +195,11 @@ namespace CountingBot
                     services.UserInformationService,
                     services.LanguageService
                 ),
+                AchievementComponentListener = new AchievementComponentListener(
+                    services.GuildSettingsService,
+                    services.UserInformationService,
+                    services.LanguageService
+                ),
             };
         }
 
@@ -209,6 +210,7 @@ namespace CountingBot
             public required JoinEventsHandler JoinEventHandler { get; init; }
             public required LeaveEventsHandler LeaveEventHandler { get; init; }
             public required HelpComponentListener HelpComponentListener { get; init; }
+            public required AchievementComponentListener AchievementComponentListener { get; init; }
         }
 
         private static void ConfigureEventHandlers(
@@ -223,6 +225,9 @@ namespace CountingBot
                 );
                 b.HandleComponentInteractionCreated(
                     handlers.HelpComponentListener.HandleComponentInteraction
+                );
+                b.HandleComponentInteractionCreated(
+                    handlers.AchievementComponentListener.HandleComponentInteraction
                 );
                 b.HandleMessageCreated(handlers.MessageHandler.HandleMessage);
                 b.HandleMessageDeleted(handlers.MessageHandler.HandleMessageDeleted);

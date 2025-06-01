@@ -8,3 +8,4 @@ appsettings.json
 *.db-shm
 /logs
 /Data/logs
+/.config

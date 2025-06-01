@@ -49,7 +49,11 @@
 
     "SetCountInvalidNumber": "The number cannot be negative.",
     "SetCountUpdatedTitle": "Count Updated",
-    "SetCountUpdatedDescription": "The count for the selected channel has been set to **{0}**.",
+    "SetCountUpdatedDescription": "The count for the selected channel has been set to **{0}** (Base-{1}: **{2}**).",
+    "SetCountConfirmTitle": "⚠️ Confirm Count Change",
+    "SetCountConfirmDescription": "Are you sure you want to change the count from **{0}** to **{1}**?\n\nIn Base-{2}: **{3}** → **{4}**\n\nThis will affect all users counting in this channel.",
+    "SetCountCanceledTitle": "Count Change Canceled",
+    "SetCountCanceledDescription": "The count change has been canceled.",
 
     "SlowdownTitle": "Slow Down!",
     "SlowdownMessage": "Please wait before sending another message.",
@@ -138,68 +142,175 @@
     "FirstCountName": "First Count",
     "FirstCountDescription": "Make your very first count.",
 
-    "CenturionCounterName": "Centurion Counter",
-    "CenturionCounterDescription": "Reach 100 correct counts.",
-
-    "HotStreakName": "Hot Streak",
-    "HotStreakDescription": "Reach a streak of 10.",
-
-    "GettingStrongerName": "Getting Stronger",
-    "GettingStrongerDescription": "Reach level 5.",
-
-    "CoinCollectorName": "Coin Collector",
-    "CoinCollectorDescription": "Earn 1000 coins.",
-
-    "AchievementMasterName": "Achievement Master",
-    "AchievementMasterDescription": "Complete 10 challenges.",
+    "FiveCountName": "Getting Started",
+    "FiveCountDescription": "Count at least 5 times.",
 
     "TenCountName": "Counting Novice",
-    "TenCountDescription": "Count atleast 10 times.",
+    "TenCountDescription": "Count at least 10 times.",
+
+    "FiftyCountName": "Regular Counter",
+    "FiftyCountDescription": "Count at least 50 times.",
+
+    "HundredCountName": "Dedicated Counter",
+    "HundredCountDescription": "Count at least 100 times.",
+
+    "FiveHundredCountName": "Counting Enthusiast",
+    "FiveHundredCountDescription": "Count at least 500 times.",
+
+    "ThousandCountName": "Counting Expert",
+    "ThousandCountDescription": "Count at least 1,000 times.",
+
+    "TwentyFiveCorrectName": "Beginner Accuracy",
+    "TwentyFiveCorrectDescription": "Count correctly 25 times.",
+
+    "FiftyCorrectName": "Improving Accuracy",
+    "FiftyCorrectDescription": "Count correctly 50 times.",
+
+    "CenturionCounterName": "Centurion Counter",
+    "CenturionCounterDescription": "Count correctly 100 times.",
+
+    "TwoFiftyCorrectName": "Precision Counter",
+    "TwoFiftyCorrectDescription": "Count correctly 250 times.",
 
     "FiveHundredCorrectName": "Precision Pro",
     "FiveHundredCorrectDescription": "Count correctly 500 times.",
 
+    "ThousandCorrectName": "Counting Virtuoso",
+    "ThousandCorrectDescription": "Count correctly 1,000 times.",
+
+    "Level3Name": "Apprentice Counter",
+    "Level3Description": "Reach level 3.",
+
+    "GettingStrongerName": "Getting Stronger",
+    "GettingStrongerDescription": "Reach level 5.",
+
     "Level10Name": "Leveling Up",
     "Level10Description": "Reach level 10.",
+
+    "Level15Name": "Counting Adept",
+    "Level15Description": "Reach level 15.",
 
     "Level20Name": "Elite Counter",
     "Level20Description": "Reach level 20.",
 
-    "TwentyStreakName": "On Fire",
-    "TwentyStreakDescription": "Achieve a 50-count streak.",
+    "Level30Name": "Counting Master",
+    "Level30Description": "Reach level 30.",
 
-    "FiftyStreakName": "Machine Mode",
-    "FiftyStreakDescription": "Achieve a 150-count streak.",
+    "Level50Name": "Counting Legend",
+    "Level50Description": "Reach level 50.",
+
+    "TenStreakName": "Hot Streak",
+    "TenStreakDescription": "Achieve a 10-count streak.",
+
+    "TwentyFiveStreakName": "Warming Up",
+    "TwentyFiveStreakDescription": "Achieve a 25-count streak.",
+
+    "FiftyStreakName": "On Fire",
+    "FiftyStreakDescription": "Achieve a 50-count streak.",
+
+    "HundredStreakName": "Unstoppable",
+    "HundredStreakDescription": "Achieve a 100-count streak.",
+
+    "TwoFiftyStreakName": "Machine Mode",
+    "TwoFiftyStreakDescription": "Achieve a 250-count streak.",
+
+    "FiveHundredStreakName": "Legendary Streak",
+    "FiveHundredStreakDescription": "Achieve a 500-count streak.",
+
+    "SecondWindSmallName": "Quick Recovery",
+    "SecondWindSmallDescription": "Get a streak of 5 or higher after making a mistake.",
 
     "SecondWind": "Second Wind",
-    "SecondWindDescription": "Get a streak 15 or higher after losing your streak.",
+    "SecondWindDescription": "Get a streak of 15 or higher after making a mistake.",
 
-    "NightOwlName": "Night Owl",
-    "NightOwlDescription": "Count between 12:00 AM and 6:00 AM UTC.",
+    "SecondWindLargeName": "Phoenix Rising",
+    "SecondWindLargeDescription": "Get a streak of 30 or higher after making a mistake.",
 
-    "EarlyBirdName": "Early Bird",
-    "EarlyBirdDescription": "Count between 5:00 AM and 8:00 AM UTC.",
+    "CoinStarterName": "Coin Starter",
+    "CoinStarterDescription": "Earn 100 coins.",
 
-    "AccountVeteranName": "Veteran Counter",
-    "AccountVeteranDescription": "Have counted for a minimum of 1 year.",
+    "CoinGathererName": "Coin Gatherer",
+    "CoinGathererDescription": "Earn 500 coins.",
+
+    "CoinCollectorName": "Coin Collector",
+    "CoinCollectorDescription": "Earn 1,000 coins.",
+
+    "CoinHoarderName": "Coin Hoarder",
+    "CoinHoarderDescription": "Earn 2,500 coins.",
 
     "CoinTycoonName": "Coin Tycoon",
-    "CoinTycoonDescription": "Earn 5000 coins.",
+    "CoinTycoonDescription": "Earn 5,000 coins.",
+
+    "CoinMagnateName": "Coin Magnate",
+    "CoinMagnateDescription": "Earn 10,000 coins.",
 
     "PerfectDayName": "Perfect Day",
     "PerfectDayDescription": "Count correctly for an entire day without a single mistake.",
 
-    "WeeklyStreakerName": "Challenge Streaker",
-    "WeeklyStreakerDescription": "Complete a weekly challenge 3 weeks in a row.",
+    "ActiveCounterName": "Active Counter",
+    "ActiveCounterDescription": "Count on at least 3 different days in a week.",
 
-    "ChallengeChampionName": "Challenge Champion",
-    "ChallengeChampionDescription": "Complete 25 challenges.",
+    "WeeklyCounterName": "Weekly Counter",
+    "WeeklyCounterDescription": "Count on at least 5 different days in a week.",
+
+    "DedicatedCounterName": "Dedicated Counter",
+    "DedicatedCounterDescription": "Count every day for a full week.",
+
+    "NightOwlName": "Night Owl",
+    "NightOwlDescription": "Count between 10:00 PM and 3:00 AM UTC.",
+
+    "EarlyBirdName": "Early Bird",
+    "EarlyBirdDescription": "Count between 5:00 AM and 8:00 AM UTC.",
+
+    "LunchCounterName": "Lunch Counter",
+    "LunchCounterDescription": "Count between 11:00 AM and 1:00 PM UTC.",
+
+    "WeekendWarriorName": "Weekend Warrior",
+    "WeekendWarriorDescription": "Count on both Saturday and Sunday.",
+
+    "BinaryMasterName": "Binary Master",
+    "BinaryMasterDescription": "Successfully count in a binary channel.",
+
+    "HexWizardName": "Hex Wizard",
+    "HexWizardDescription": "Successfully count in a hexadecimal channel.",
+
+    "MathGeniusName": "Math Genius",
+    "MathGeniusDescription": "Successfully use a math expression while counting.",
+
+    "OneMonthVeteranName": "Counting Rookie",
+    "OneMonthVeteranDescription": "Have counted for at least 1 month.",
+
+    "ThreeMonthVeteranName": "Counting Veteran",
+    "ThreeMonthVeteranDescription": "Have counted for at least 3 months.",
+
+    "SixMonthVeteranName": "Counting Devotee",
+    "SixMonthVeteranDescription": "Have counted for at least 6 months.",
+
+    "AccountVeteranName": "Counting Loyalist",
+    "AccountVeteranDescription": "Have counted for at least 1 year.",
+
+    "AchievementCollectorName": "Achievement Collector",
+    "AchievementCollectorDescription": "Unlock 10 achievements.",
+
+    "AchievementHunterName": "Achievement Hunter",
+    "AchievementHunterDescription": "Unlock 20 achievements.",
+
+    "AchievementMasterName": "Achievement Master",
+    "AchievementMasterDescription": "Unlock 30 achievements.",
 
     "SecretAchievement": "?????????",
     "SecretAchievementDescription": "?????????????",
 
     "AchievementsTitle": "{0}'s Achievements",
     "AchievementsDescription": "Here are all of your unlocked achievements. {0}/{1}",
+
+    "AchievementTypeAllOption": "All Achievements",
+    "AchievementTypeMilestoneOption": "Milestone Achievements",
+    "AchievementTypeSkillOption": "Skill Achievements",
+    "AchievementTypeCollectionOption": "Collection Achievements",
+    "AchievementTypeTimeBasedOption": "Time-Based Achievements",
+    "AchievementTypeSelectorLabel": "Filter by Type",
+    "AchievementComponentErrorMessage": "An error occurred while processing your request.",
 
     "CommandPermissionsUpdatedTitle": "✅ Command Permissions Updated",
     "CommandPermissionsUpdatedDescription": "Permissions for command **{0}** were successfully updated.",
@@ -281,7 +392,7 @@
     "HelpCountingRulesTitle": "Basic Rules",
     "HelpCountingRulesContent": "• Users take turns counting up from 1\n• Each number must be exactly one higher than the previous\n• The same user can count multiple times in a row\n• If someone makes a mistake, counting restarts from 1\n• You can use revives to save the count after a mistake",
     "HelpCountingSystemsTitle": "Number Systems",
-    "HelpCountingSystemsContent": "The bot supports different number systems:\n• **Decimal** - Regular numbers (1, 2, 3...)\n• **Binary** - Base-2 (1, 10, 11, 100...)\n• **Hexadecimal** - Base-16 (1, 2... 9, A, B, C, D, E, F, 10...)\n• **Roman** - Roman numerals (I, II, III, IV...)",
+    "HelpCountingSystemsContent": "The bot supports different number systems:\n• **Decimal** - Regular numbers (1, 2, 3...)\n• **Binary** - Base-2 (1, 10, 11, 100...)\n• **Hexadecimal** - Base-16 (1, 2... 9, A, B, C, D, E, F, 10...)",
     "HelpCountingMathTitle": "Math Expressions",
     "HelpCountingMathContent": "If enabled, you can use math expressions when counting:\n• `2+2` (equals 4)\n• `3*2` (equals 6)\n• `10-5` (equals 5)\nThe result must equal the next number in the sequence.",
     "HelpCountingRevivesTitle": "Revives",
@@ -321,7 +432,7 @@
     "SuggestionCommandImplementedButton": "Mark as Implemented",
     "SuggestionCommandImplementedTitle": "Suggestion Implemented",
     "SuggestionCommandImplementedDescription": "This suggestion has been marked as implemented and the report has been removed.",
-    
+
     "HighscoreTitle": "🏆 Highscore",
     "HighscoreDescription": "The current highscore for this channel is {0}!"
 }

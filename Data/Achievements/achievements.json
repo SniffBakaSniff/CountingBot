@@ -5,17 +5,15 @@
     "description": "FirstCountDescription",
     "type": "Milestone",
     "requirements": { "minTotalCounts": 1 },
-    "secret": false,
-    "trackProgress": false
+    "secret": false
   },
   {
-    "id": "level_5",
-    "name": "GettingStrongerName",
-    "description": "GettingStrongerDescription",
+    "id": "five_count",
+    "name": "FiveCountName",
+    "description": "FiveCountDescription",
     "type": "Milestone",
-    "requirements": { "minLevel": 5 },
-    "secret": false,
-    "trackProgress": true
+    "requirements": { "minTotalCounts": 5 },
+    "secret": false
   },
   {
     "id": "ten_count",
@@ -23,8 +21,55 @@
     "description": "TenCountDescription",
     "type": "Milestone",
     "requirements": { "minTotalCounts": 10 },
-    "secret": false,
-    "trackProgress": true
+    "secret": false
+  },
+  {
+    "id": "fifty_count",
+    "name": "FiftyCountName",
+    "description": "FiftyCountDescription",
+    "type": "Milestone",
+    "requirements": { "minTotalCounts": 50 },
+    "secret": false
+  },
+  {
+    "id": "hundred_count",
+    "name": "HundredCountName",
+    "description": "HundredCountDescription",
+    "type": "Milestone",
+    "requirements": { "minTotalCounts": 100 },
+    "secret": false
+  },
+  {
+    "id": "five_hundred_count",
+    "name": "FiveHundredCountName",
+    "description": "FiveHundredCountDescription",
+    "type": "Milestone",
+    "requirements": { "minTotalCounts": 500 },
+    "secret": false
+  },
+  {
+    "id": "thousand_count",
+    "name": "ThousandCountName",
+    "description": "ThousandCountDescription",
+    "type": "Milestone",
+    "requirements": { "minTotalCounts": 1000 },
+    "secret": false
+  },
+  {
+    "id": "twenty_five_correct",
+    "name": "TwentyFiveCorrectName",
+    "description": "TwentyFiveCorrectDescription",
+    "type": "Milestone",
+    "requirements": { "minCorrectCounts": 25 },
+    "secret": false
+  },
+  {
+    "id": "fifty_correct",
+    "name": "FiftyCorrectName",
+    "description": "FiftyCorrectDescription",
+    "type": "Milestone",
+    "requirements": { "minCorrectCounts": 50 },
+    "secret": false
   },
   {
     "id": "hundred_correct",
@@ -32,8 +77,15 @@
     "description": "CenturionCounterDescription",
     "type": "Milestone",
     "requirements": { "minCorrectCounts": 100 },
-    "secret": false,
-    "trackProgress": true
+    "secret": false
+  },
+  {
+    "id": "two_fifty_correct",
+    "name": "TwoFiftyCorrectName",
+    "description": "TwoFiftyCorrectDescription",
+    "type": "Milestone",
+    "requirements": { "minCorrectCounts": 250 },
+    "secret": false
   },
   {
     "id": "five_hundred_correct",
@@ -41,8 +93,31 @@
     "description": "FiveHundredCorrectDescription",
     "type": "Milestone",
     "requirements": { "minCorrectCounts": 500 },
-    "secret": false,
-    "trackProgress": true
+    "secret": false
+  },
+  {
+    "id": "thousand_correct",
+    "name": "ThousandCorrectName",
+    "description": "ThousandCorrectDescription",
+    "type": "Milestone",
+    "requirements": { "minCorrectCounts": 1000 },
+    "secret": false
+  },
+  {
+    "id": "level_3",
+    "name": "Level3Name",
+    "description": "Level3Description",
+    "type": "Milestone",
+    "requirements": { "minLevel": 3 },
+    "secret": false
+  },
+  {
+    "id": "level_5",
+    "name": "GettingStrongerName",
+    "description": "GettingStrongerDescription",
+    "type": "Milestone",
+    "requirements": { "minLevel": 5 },
+    "secret": false
   },
   {
     "id": "level_10",
@@ -50,8 +125,15 @@
     "description": "Level10Description",
     "type": "Milestone",
     "requirements": { "minLevel": 10 },
-    "secret": false,
-    "trackProgress": true
+    "secret": false
+  },
+  {
+    "id": "level_15",
+    "name": "Level15Name",
+    "description": "Level15Description",
+    "type": "Milestone",
+    "requirements": { "minLevel": 15 },
+    "secret": false
   },
   {
     "id": "level_20",
@@ -59,26 +141,79 @@
     "description": "Level20Description",
     "type": "Milestone",
     "requirements": { "minLevel": 20 },
-    "secret": false,
-    "trackProgress": true
+    "secret": false
   },
   {
-    "id": "twenty_streak",
-    "name": "TwentyStreakName",
-    "description": "TwentyStreakDescription",
+    "id": "level_30",
+    "name": "Level30Name",
+    "description": "Level30Description",
+    "type": "Milestone",
+    "requirements": { "minLevel": 30 },
+    "secret": false
+  },
+  {
+    "id": "level_50",
+    "name": "Level50Name",
+    "description": "Level50Description",
+    "type": "Milestone",
+    "requirements": { "minLevel": 50 },
+    "secret": false
+  },
+  {
+    "id": "ten_streak",
+    "name": "TenStreakName",
+    "description": "TenStreakDescription",
     "type": "Skill",
-    "requirements": { "minBestStreak": 50 },
-    "secret": false,
-    "trackProgress": true
+    "requirements": { "minBestStreak": 10 },
+    "secret": false
+  },
+  {
+    "id": "twenty_five_streak",
+    "name": "TwentyFiveStreakName",
+    "description": "TwentyFiveStreakDescription",
+    "type": "Skill",
+    "requirements": { "minBestStreak": 25 },
+    "secret": false
   },
   {
     "id": "fifty_streak",
     "name": "FiftyStreakName",
     "description": "FiftyStreakDescription",
     "type": "Skill",
-    "requirements": { "minBestStreak": 150 },
-    "secret": false,
-    "trackProgress": true
+    "requirements": { "minBestStreak": 50 },
+    "secret": false
+  },
+  {
+    "id": "hundred_streak",
+    "name": "HundredStreakName",
+    "description": "HundredStreakDescription",
+    "type": "Skill",
+    "requirements": { "minBestStreak": 100 },
+    "secret": false
+  },
+  {
+    "id": "two_fifty_streak",
+    "name": "TwoFiftyStreakName",
+    "description": "TwoFiftyStreakDescription",
+    "type": "Skill",
+    "requirements": { "minBestStreak": 250 },
+    "secret": false
+  },
+  {
+    "id": "five_hundred_streak",
+    "name": "FiveHundredStreakName",
+    "description": "FiveHundredStreakDescription",
+    "type": "Skill",
+    "requirements": { "minBestStreak": 500 },
+    "secret": false
+  },
+  {
+    "id": "second_wind_small",
+    "name": "SecondWindSmallName",
+    "description": "SecondWindSmallDescription",
+    "type": "Skill",
+    "requirements": { "minStreakAfterError": 5 },
+    "secret": false
   },
   {
     "id": "second_wind",
@@ -86,8 +221,31 @@
     "description": "SecondWindDescription",
     "type": "Skill",
     "requirements": { "minStreakAfterError": 15 },
-    "secret": false,
-    "trackProgress": true
+    "secret": false
+  },
+  {
+    "id": "second_wind_large",
+    "name": "SecondWindLargeName",
+    "description": "SecondWindLargeDescription",
+    "type": "Skill",
+    "requirements": { "minStreakAfterError": 30 },
+    "secret": false
+  },
+  {
+    "id": "coin_starter",
+    "name": "CoinStarterName",
+    "description": "CoinStarterDescription",
+    "type": "Collection",
+    "requirements": { "minCoins": 100 },
+    "secret": false
+  },
+  {
+    "id": "coin_gatherer",
+    "name": "CoinGathererName",
+    "description": "CoinGathererDescription",
+    "type": "Collection",
+    "requirements": { "minCoins": 500 },
+    "secret": false
   },
   {
     "id": "coin_collector",
@@ -95,8 +253,15 @@
     "description": "CoinCollectorDescription",
     "type": "Collection",
     "requirements": { "minCoins": 1000 },
-    "secret": false,
-    "trackProgress": true
+    "secret": false
+  },
+  {
+    "id": "coin_hoarder",
+    "name": "CoinHoarderName",
+    "description": "CoinHoarderDescription",
+    "type": "Collection",
+    "requirements": { "minCoins": 2500 },
+    "secret": false
   },
   {
     "id": "coin_tycoon",
@@ -104,8 +269,15 @@
     "description": "CoinTycoonDescription",
     "type": "Collection",
     "requirements": { "minCoins": 5000 },
-    "secret": false,
-    "trackProgress": true
+    "secret": false
+  },
+  {
+    "id": "coin_magnate",
+    "name": "CoinMagnateName",
+    "description": "CoinMagnateDescription",
+    "type": "Collection",
+    "requirements": { "minCoins": 10000 },
+    "secret": false
   },
   {
     "id": "perfect_day",
@@ -113,8 +285,31 @@
     "description": "PerfectDayDescription",
     "type": "Skill",
     "requirements": { "perfectCountDay": true },
-    "secret": false,
-    "trackProgress": false
+    "secret": false
+  },
+  {
+    "id": "active_counter",
+    "name": "ActiveCounterName",
+    "description": "ActiveCounterDescription",
+    "type": "TimeBased",
+    "requirements": { "activeWeekDays": 3 },
+    "secret": false
+  },
+  {
+    "id": "weekly_counter",
+    "name": "WeeklyCounterName",
+    "description": "WeeklyCounterDescription",
+    "type": "TimeBased",
+    "requirements": { "activeWeekDays": 5 },
+    "secret": false
+  },
+  {
+    "id": "dedicated_counter",
+    "name": "DedicatedCounterName",
+    "description": "DedicatedCounterDescription",
+    "type": "TimeBased",
+    "requirements": { "activeWeekDays": 7 },
+    "secret": false
   },
   {
     "id": "night_owl",
@@ -122,8 +317,7 @@
     "description": "NightOwlDescription",
     "type": "TimeBased",
     "requirements": { "utcHourRange": [22, 3] },
-    "secret": true,
-    "trackProgress": false
+    "secret": true
   },
   {
     "id": "early_bird",
@@ -131,8 +325,39 @@
     "description": "EarlyBirdDescription",
     "type": "TimeBased",
     "requirements": { "utcHourRange": [5, 8] },
-    "secret": false,
-    "trackProgress": false
+    "secret": false
+  },
+  {
+    "id": "lunch_counter",
+    "name": "LunchCounterName",
+    "description": "LunchCounterDescription",
+    "type": "TimeBased",
+    "requirements": { "utcHourRange": [11, 13] },
+    "secret": false
+  },
+  {
+    "id": "one_month_veteran",
+    "name": "OneMonthVeteranName",
+    "description": "OneMonthVeteranDescription",
+    "type": "TimeBased",
+    "requirements": { "minAccountAgeDays": 30 },
+    "secret": false
+  },
+  {
+    "id": "three_month_veteran",
+    "name": "ThreeMonthVeteranName",
+    "description": "ThreeMonthVeteranDescription",
+    "type": "TimeBased",
+    "requirements": { "minAccountAgeDays": 90 },
+    "secret": false
+  },
+  {
+    "id": "six_month_veteran",
+    "name": "SixMonthVeteranName",
+    "description": "SixMonthVeteranDescription",
+    "type": "TimeBased",
+    "requirements": { "minAccountAgeDays": 180 },
+    "secret": false
   },
   {
     "id": "account_veteran",
@@ -140,7 +365,30 @@
     "description": "AccountVeteranDescription",
     "type": "TimeBased",
     "requirements": { "minAccountAgeDays": 365 },
-    "secret": true,
-    "trackProgress": false
+    "secret": false
+  },
+  {
+    "id": "achievement_collector",
+    "name": "AchievementCollectorName",
+    "description": "AchievementCollectorDescription",
+    "type": "Collection",
+    "requirements": { "minAchievementsUnlocked": 10 },
+    "secret": false
+  },
+  {
+    "id": "achievement_hunter",
+    "name": "AchievementHunterName",
+    "description": "AchievementHunterDescription",
+    "type": "Collection",
+    "requirements": { "minAchievementsUnlocked": 20 },
+    "secret": false
+  },
+  {
+    "id": "achievement_master",
+    "name": "AchievementMasterName",
+    "description": "AchievementMasterDescription",
+    "type": "Collection",
+    "requirements": { "minAchievementsUnlocked": 30 },
+    "secret": false
   }
 ]

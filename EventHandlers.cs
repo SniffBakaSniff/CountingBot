@@ -1,4 +1,4 @@
-﻿using CountingBot.Helpers;
+using CountingBot.Helpers;
 using DSharpPlus.Commands;
 using DSharpPlus.Commands.EventArgs;
 

@@ -19,7 +19,7 @@ namespace CountingBot
     static class Program
     {
         public static readonly DateTime _botStartTime = DateTime.UtcNow;
-        private static readonly string SeqServerUrl = "http://localhost:5341";
+        private static readonly string SeqServerUrl = "http://localhost:534"; // Optional
         private static readonly string LogFilePath = "Data/logs/log.txt";
 
         public static async Task Main(string[] args)

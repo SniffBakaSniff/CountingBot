@@ -4,7 +4,6 @@ using CountingBot.Helpers;
 using CountingBot.Services;
 using CountingBot.Services.Database;
 using DSharpPlus.Commands;
-using DSharpPlus.Commands.Processors.SlashCommands.ArgumentModifiers;
 using DSharpPlus.Entities;
 using Serilog;
 
@@ -44,6 +43,7 @@ namespace CountingBot.Features.Commands
             {
                 // Fetch current settings
                 bool mathEnabled = await _guildSettingsService.GetMathEnabledAsync(guildId);
+                
                 string language =
                     await _guildSettingsService.GetGuildPreferredLanguageAsync(guildId) ?? "en";
                 string prefix = await _guildSettingsService.GetPrefixAsync(guildId);

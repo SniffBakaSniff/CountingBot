@@ -80,31 +80,59 @@ namespace CountingBot.Features.Commands
 
                 // Get localized strings
                 string lang =
-                    await _guildSettingsService.GetGuildPreferredLanguageAsync(guildId) ?? "en";
+                    await _userInformationService.GetUserPreferredLanguageAsync(ctx.User.Id)
+                    ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(ctx.Guild!.Id)
+                    ?? "en";
+
                 string title = await _languageService.GetLocalizedStringAsync(
                     "HighscoreTitle",
-                    lang
-                );
-                string description = await _languageService.GetLocalizedStringAsync(
-                    "HighscoreDescription",
                     lang
                 );
 
                 // Format the description with both the formatted highscore and decimal value
                 string displayValue = formattedHighscore;
-                if (channelBase != 10) // Only show decimal value if not already in decimal
+                if (channelBase != 10)
                 {
                     displayValue += $" ({decimalHighscore})";
                 }
-                description = string.Format(description, displayValue);
 
                 // Create and send the embed
                 var embed = new DiscordEmbedBuilder
                 {
-                    Title = title,
-                    Description = description,
+                    Title = $"{title}",
                     Color = DiscordColor.Gold,
+                    Timestamp = DateTimeOffset.Now,
                 };
+
+                // Add channel information field if not current channel
+                if (channel.HasValue && channel.Value != ctx.Channel.Id)
+                {
+                    var targetChannel = await ctx.Guild.GetChannelAsync(channel.Value);
+                    embed.AddField(
+                        await _languageService.GetLocalizedStringAsync(
+                            "HighscoreChannelField",
+                            lang
+                        ) ?? "Channel",
+                        targetChannel?.Mention ?? $"<#{channel.Value}>",
+                        true
+                    );
+                }
+
+                // Add base information field
+                embed.AddField(
+                    await _languageService.GetLocalizedStringAsync("HighscoreBaseField", lang)
+                        ?? "Number Base",
+                    channelBase.ToString(),
+                    true
+                );
+
+                // Add highscore value field with emphasis
+                embed.AddField(
+                    await _languageService.GetLocalizedStringAsync("HighscoreValueField", lang)
+                        ?? "Current Highscore",
+                    $"```\n{displayValue}\n```",
+                    false
+                );
 
                 await ctx.RespondAsync(
                     new DiscordInteractionResponseBuilder()

@@ -136,7 +136,7 @@ namespace CountingBot.Services.Database
                 using var dbContext = new BotDbContext();
                 Log.Information("Setting prefix for guild {GuildId} to {Prefix}", guildId, prefix);
 
-                var settings = await GetOrCreateGuildSettingsAsync(guildId);
+                var settings = await GetOrCreateGuildSettingsAsync(guildId, dbContext);
                 settings.Prefix = prefix;
 
                 await dbContext.SaveChangesAsync();
@@ -165,7 +165,7 @@ namespace CountingBot.Services.Database
                     guildId
                 );
 
-                var settings = await GetOrCreateGuildSettingsAsync(guildId);
+                var settings = await GetOrCreateGuildSettingsAsync(guildId, dbContext);
                 settings.MathEnabled = enabled;
 
                 await dbContext.SaveChangesAsync();
@@ -458,7 +458,7 @@ namespace CountingBot.Services.Database
                     language
                 );
 
-                var settings = await GetOrCreateGuildSettingsAsync(guildId);
+                var settings = await GetOrCreateGuildSettingsAsync(guildId, dbContext);
                 settings.PreferredLanguage = language;
 
                 await dbContext.SaveChangesAsync();
@@ -502,7 +502,7 @@ namespace CountingBot.Services.Database
                     name
                 );
 
-                var settings = await GetOrCreateGuildSettingsAsync(guildId);
+                var settings = await GetOrCreateGuildSettingsAsync(guildId, dbContext);
                 Log.Debug(
                     "Fetched settings for guild {GuildId}: Prefix={Prefix}, Language={Language}",
                     guildId,
@@ -579,7 +579,7 @@ namespace CountingBot.Services.Database
                     name
                 );
 
-                var settings = await GetOrCreateGuildSettingsAsync(guildId);
+                var settings = await GetOrCreateGuildSettingsAsync(guildId, dbContext);
                 Log.Debug(
                     "Fetched settings for guild {GuildId}: Prefix={Prefix}, Language={Language}",
                     guildId,
@@ -715,7 +715,7 @@ namespace CountingBot.Services.Database
                     name
                 );
 
-                var settings = await GetOrCreateGuildSettingsAsync(guildId);
+                var settings = await GetOrCreateGuildSettingsAsync(guildId, dbContext);
                 if (!settings.CommandPermissions.TryGetValue(name, out var permissionData))
                 {
                     Log.Debug(
@@ -797,7 +797,7 @@ namespace CountingBot.Services.Database
                     name
                 );
 
-                var settings = await GetOrCreateGuildSettingsAsync(guildId);
+                var settings = await GetOrCreateGuildSettingsAsync(guildId, dbContext);
                 if (!settings.CommandPermissions.TryGetValue(name, out var permissionData))
                 {
                     Log.Debug(
@@ -959,10 +959,14 @@ namespace CountingBot.Services.Database
         /// Gets existing guild settings or creates new ones if they don't exist.
         /// </summary>
         /// <param name="guildId">The Discord guild ID.</param>
+        /// <param name="dbContext">The Database Context</param>
         /// <returns>The guild settings object.</returns>
-        public async Task<GuildSettings> GetOrCreateGuildSettingsAsync(ulong guildId)
+        public async Task<GuildSettings> GetOrCreateGuildSettingsAsync(
+            ulong guildId,
+            BotDbContext? dbContext = null
+        )
         {
-            using var dbContext = new BotDbContext();
+            dbContext ??= new BotDbContext();
             var settings = await dbContext.GuildSettings.FindAsync(guildId);
             if (settings is null)
             {

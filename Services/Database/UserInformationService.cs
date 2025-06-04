@@ -204,7 +204,7 @@ namespace CountingBot.Services.Database
             }
 
             // Award revive token at milestone streaks
-            if (userInformation.Revives < 3 && stats.CurrentStreak % 500 == 0)
+            if (userInformation.Revives < 1 && stats.CurrentStreak % 500 == 0)
             {
                 userInformation.Revives++;
             }

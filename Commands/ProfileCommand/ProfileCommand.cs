@@ -75,7 +75,7 @@ namespace CountingBot.Features.Commands
                     true
                 );
                 embed.AddField($"💰 {coinsLabel}", "╰➤ " + formattedCoins, true);
-                embed.AddField($"⚡ {revivesTemplate}", "╰➤ " + $"{userInfo.Revives}/3", true);
+                embed.AddField($"⚡ {revivesTemplate}", "╰➤ " + $"{userInfo.Revives}/1", true);
 
                 embed.WithFooter(lastUpdatedLabel).WithTimestamp(userInfo.LastUpdated);
 

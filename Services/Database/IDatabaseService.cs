@@ -1,3 +1,4 @@
+using CountingBot.Database;
 using CountingBot.Database.Models;
 
 namespace CountingBot.Services.Database
@@ -107,8 +108,12 @@ namespace CountingBot.Services.Database
         /// Gets or creates settings for a guild.
         /// </summary>
         /// <param name="guildId">The Discord guild ID</param>
+        /// <param name="dbContext">The Database Context</param>
         /// <returns>The guild settings object</returns>
-        Task<GuildSettings> GetOrCreateGuildSettingsAsync(ulong guildId);
+        Task<GuildSettings> GetOrCreateGuildSettingsAsync(
+            ulong guildId,
+            BotDbContext? dbContext = null
+        );
 
         /// <summary>
         /// Sets permissions for a command in a guild.

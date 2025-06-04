@@ -40,8 +40,9 @@ namespace CountingBot.Features.Commands
                 var embed = MessageHelpers.GenericUpdateEmbed(title, description);
 
                 await ctx.RespondAsync(
-                    new DiscordMessageBuilder()
+                    new DiscordInteractionResponseBuilder()
                         .AddEmbed(embed)
+                        .AsEphemeral(true)
                         .AddComponents(
                             new DiscordButtonComponent(
                                 DiscordButtonStyle.Secondary,

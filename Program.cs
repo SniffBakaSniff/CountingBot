@@ -10,7 +10,6 @@ using DSharpPlus.Commands.Processors.SlashCommands;
 using DSharpPlus.Commands.Processors.TextCommands;
 using DSharpPlus.Commands.Processors.TextCommands.Parsing;
 using DSharpPlus.Entities;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
 
@@ -19,7 +18,7 @@ namespace CountingBot
     static class Program
     {
         public static readonly DateTime _botStartTime = DateTime.UtcNow;
-        private static readonly string SeqServerUrl = "http://localhost:534"; // Optional
+        private static readonly string SeqServerUrl = "http://localhost:5341"; // Optional
         private static readonly string LogFilePath = "Data/logs/log.txt";
 
         public static async Task Main(string[] args)

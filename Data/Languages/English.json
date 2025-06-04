@@ -396,7 +396,7 @@
     "HelpCountingMathTitle": "Math Expressions",
     "HelpCountingMathContent": "If enabled, you can use math expressions when counting:\n• `2+2` (equals 4)\n• `3*2` (equals 6)\n• `10-5` (equals 5)\nThe result must equal the next number in the sequence.",
     "HelpCountingRevivesTitle": "Revives",
-    "HelpCountingRevivesContent": "When someone makes a mistake, you can use a revive to continue counting:\n• Each user has up to 3 revives\n• Revives are earned through regular counting\n• Use a revive by clicking the revive button that appears after a mistake",
+    "HelpCountingRevivesContent": "When someone makes a mistake, you can use a revive to continue counting:\n• Each user has up to 1 revive\n• Revives are earned for every streak of 500\n• Use a revive by clicking the revive button that appears after a mistake",
 
     "NoLeaderboardData": "No leaderboard data available.",
     "HelpComponentErrorMessage": "An error occurred while processing your selection.",
@@ -434,5 +434,8 @@
     "SuggestionCommandImplementedDescription": "This suggestion has been marked as implemented and the report has been removed.",
 
     "HighscoreTitle": "🏆 Highscore",
-    "HighscoreDescription": "The current highscore for this channel is {0}!"
+    "HighscoreDescription": "The current highscore for this channel is {0}!",
+    "HighscoreChannelField": "Channel Name",
+    "HighscoreValueField": "Score",
+    "HighscoreBaseField": "Counting Base"
 }

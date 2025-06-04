@@ -13,7 +13,7 @@ namespace CountingBot.Database
     public class BotDbContext : DbContext
     {
         private static readonly string ConnectionString =
-            "Host=localhost;Database=CountingBotDb;Username=Subaka;Password=Subaka1@;Maximum Pool Size=128;Minimum Pool Size=5;";
+            "Host=localhost;Database=CountingBotDb;Username=subaka;Password=Subaka1@;Maximum Pool Size=128;Minimum Pool Size=5;";
 
         public DbSet<GuildSettings> GuildSettings { get; set; }
         public DbSet<ChannelSettings> ChannelSettings { get; set; }

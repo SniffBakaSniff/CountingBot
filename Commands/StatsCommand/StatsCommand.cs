@@ -145,7 +145,7 @@ namespace CountingBot.Features.Commands
                     embed.AddField($"💰 {coinsLabel}", "╰➤ " + formattedCoins, true);
                     embed.AddField(
                         $"⚡ {revivesTemplate}",
-                        "╰➤ " + $"{userInfo.Revives}/3 ({userInfo.RevivesUsed} used)",
+                        "╰➤ " + $"{userInfo.Revives}/1 ({userInfo.RevivesUsed} used)",
                         true
                     );
                     embed.AddField(

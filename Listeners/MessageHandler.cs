@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 using CountingBot.Services;
 using CountingBot.Services.Database;
 using DSharpPlus;
@@ -14,14 +15,14 @@ namespace CountingBot.Listeners
     /// Processes counting messages, validates counts, and manages user interactions.
     /// Core component of the counting functionality.
     /// </summary>
-    public class MessageHandler
+    public partial class MessageHandler
     {
         private readonly IGuildSettingsService _guildSettingsService;
         private readonly IUserInformationService _userInformationService;
         private readonly ILanguageService _languageService;
         private readonly ICacheService _cacheService;
         private readonly ConcurrentDictionary<ulong, SemaphoreSlim> _guildSemaphores = new();
-        private const int CooldownSeconds = 2;
+        private const int CooldownSeconds = 4;
         private DiscordEmoji? _correctEmoji;
         private DiscordEmoji? _wrongEmoji;
         private DiscordEmoji? _highscoreEmoji;
@@ -533,7 +534,9 @@ namespace CountingBot.Listeners
 
                 if (containsMath)
                 {
-                    var expression = new Expression(input);
+                    string decimalExpression = ConvertToDecimalExpression(input, baseValue);
+
+                    var expression = new Expression(decimalExpression);
                     var evaluation = expression.Evaluate();
 
                     if (evaluation is int intResult)
@@ -635,6 +638,26 @@ namespace CountingBot.Listeners
             return (false, result);
         }
 
+        private static string ConvertToDecimalExpression(string input, int baseValue)
+        {
+            var numberRegex = MyRegex();
+
+            return numberRegex.Replace(
+                input,
+                match =>
+                {
+                    try
+                    {
+                        return Convert.ToInt32(match.Value, baseValue).ToString();
+                    }
+                    catch
+                    {
+                        return match.Value;
+                    }
+                }
+            );
+        }
+
         private bool IsUserOnCooldown(ulong channelId, ulong userId)
         {
             string cooldownCacheKey = $"{CooldownPrefix}{channelId}";
@@ -717,5 +740,8 @@ namespace CountingBot.Listeners
             await Task.Delay(delayMs);
             await Task.WhenAll(originalMessage.DeleteAsync(), warningMessage.DeleteAsync());
         }
+
+        [GeneratedRegex(@"\b[0-9A-Fa-f]+\b")]
+        private static partial Regex MyRegex();
     }
 }

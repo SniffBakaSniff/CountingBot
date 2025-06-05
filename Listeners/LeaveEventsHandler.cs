@@ -13,6 +13,7 @@ namespace CountingBot.Listeners
             _guildSettingsService = guildSettingsService;
         }
 
+        // Event is responsible for cleaning up data for when the bot is kicked from a server.
         public async Task HandleLeaveEvents(DiscordClient client, GuildDeletedEventArgs e)
         {
             await _guildSettingsService.DeleteGuildSettings(e.Guild.Id);

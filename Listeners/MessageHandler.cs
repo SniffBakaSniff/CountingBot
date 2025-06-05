@@ -107,8 +107,15 @@ namespace CountingBot.Listeners
         /// <returns></returns>
         public async Task HandleMessageDeleted(DiscordClient _, MessageDeletedEventArgs e)
         {
+            // Checks if the message is in a giuild and if not does nothing
+            if (e.Guild?.Id is null)
+            {
+                return;
+            }
+
             ulong channelId = e.Channel.Id;
             ulong guildId = e.Guild.Id;
+
             try
             {
                 string countCacheKey = $"{CountPrefix}{guildId}_{channelId}";
@@ -164,6 +171,11 @@ namespace CountingBot.Listeners
         /// <returns></returns>
         public async Task HandleMessage(DiscordClient client, MessageCreatedEventArgs e)
         {
+            if (e.Guild?.Id is null)
+            {
+                return;
+            }
+
             Log.Debug(
                 "Handling message from user {User} in channel {ChannelId}.",
                 e.Author.Username,
@@ -258,6 +270,12 @@ namespace CountingBot.Listeners
             int baseValue
         )
         {
+            // Checks if the message is in a giuild and if not does nothing
+            if (e.Guild?.Id is null)
+            {
+                return;
+            }
+
             ulong channelId = e.Channel.Id;
             ulong guildId = e.Guild.Id;
             var semaphore = GetGuildSemaphore(guildId);

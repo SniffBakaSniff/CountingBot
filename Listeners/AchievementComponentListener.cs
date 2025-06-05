@@ -56,7 +56,7 @@ namespace CountingBot.Listeners
                 var allAchievements = await _userInformationService.GetUnlockedAchievementsAsync(
                     e.User.Id,
                     1,
-                    pageSize: 9999
+                    pageSize: 50
                 );
 
                 // Filter achievements by type if needed

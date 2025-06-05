@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using DSharpPlus.Commands;
-using DSharpPlus.Commands.ContextChecks;
 using DSharpPlus.Commands.Trees.Metadata;
 using DSharpPlus.Entities;
 
@@ -14,11 +13,8 @@ namespace CountingBot.Features.Commands
         public async Task ResetCommandAsync(CommandContext ctx)
         {
             ulong userId = ctx.User.Id;
-            ulong guildId = ctx.Guild!.Id;
             string lang =
-                await _userInformationService.GetUserPreferredLanguageAsync(userId)
-                ?? await _guildSettingsService.GetGuildPreferredLanguageAsync(guildId)
-                ?? "en";
+                await _userInformationService.GetUserPreferredLanguageAsync(userId) ?? "en";
 
             string confirmationButton = await _languageService.GetLocalizedStringAsync(
                 "ResetConfirmationButton",

@@ -56,7 +56,7 @@ namespace CountingBot.Features.Commands
                     .WithTitle(title)
                     .WithColor(DiscordColor.Gray)
                     .WithDescription(description)
-                    .AddField(InputFieldTitle, $"`{number}` (Base {(int)toBase})", true)
+                    .AddField(InputFieldTitle, $"`{number}` (Base {(int)fromBase})", true)
                     .AddField(OutputFieldTitle, $"`{converted}` (Base {(int)toBase})", true)
                     .WithTimestamp(DateTime.UtcNow)
                     .Build();

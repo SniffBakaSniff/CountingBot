@@ -319,5 +319,17 @@
     "SuggestionCommandImplementedDescription": "Dis suggestion has been mawked as implemented OwO",
 
     "HighscoreTitle": "Highscore OwO",
-    "HighscoreDescription": "Da cuwwent highscowe fow this channew is {0} desu~!"
+    "HighscoreDescription": "Da cuwwent highscowe fow this channew is {0} desu~!",
+
+    "ConvertTitle": "🔁 Base Convewsion nya~",
+    "ConvertDescription": "Convewts a nyumbew fwom one nyumewaw system to anothew >w<",
+    "ConvertInputField": "Inpuut nya~",
+    "ConvertInputFieldDescription": "`{1}` (Base {2}) owo",
+    "ConvertOutputField": "Outpuut uwu",
+    "ConvertOutputDescription": "`{1}` (Base {2}) nya~",
+    "ConvertFromBaseField": "Fwom Base OwO",
+    "ConvertToBaseField": "To Base UwU",
+    "ConvertErrorInvalidFormat": "❌ Uh-oh! That nyumbew doesn’t match the base nya~ ;w;",
+    "ConvertErrorGeneral": "❌ Something went wrongey-wong during convewsion uwu"
+
 }

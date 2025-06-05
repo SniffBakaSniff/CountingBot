@@ -437,5 +437,16 @@
     "HighscoreDescription": "The current highscore for this channel is {0}!",
     "HighscoreChannelField": "Channel Name",
     "HighscoreValueField": "Score",
-    "HighscoreBaseField": "Counting Base"
+    "HighscoreBaseField": "Counting Base",
+
+    "ConvertTitle": "🔁 Base Conversion",
+    "ConvertDescription": "Converts a number from one numeral system to another.",
+    "ConvertInputField": "Input",
+    "ConvertInputFieldDescription": "`{1}` (Base {2)",
+    "ConvertOutputField": "Output",
+    "ConvertOutputDescription": "`{1}` (Base {2)",
+    "ConvertFromBaseField": "From Base",
+    "ConvertToBaseField": "To Base",
+    "ConvertErrorInvalidFormat": "❌ Invalid number format for the selected input base.",
+    "ConvertErrorGeneral": "❌ An error occurred while converting the number."
 }
